@@ -1,0 +1,1785 @@
+Main = {
+	Services = {
+		tweenService = game:GetService("TweenService"),
+		UIS = game:GetService("UserInputService"),
+		runService = game:GetService("RunService"),
+		coreGui = game:GetService("CoreGui")
+	},
+
+	Vars = {
+		localPlayer = game:GetService("Players").LocalPlayer,
+		Mouse = nil,
+		viewPort = workspace.CurrentCamera.ViewportSize,
+		Camera = workspace.CurrentCamera,
+		DynamicSize = nil,
+		stop = false,
+		stopforce = false
+	},
+
+	TweenTypes = {
+		Drag = {Enum.EasingStyle.Sine, Enum.EasingDirection.Out},
+		Hover = {Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut},
+		Click = {Enum.EasingStyle.Back, Enum.EasingDirection.Out}
+	},
+
+	Utilities = {
+		Settings = function(Defaults, Options)
+			for i, v in pairs(Defaults) do
+				if Options[i] == nil then
+					Options[i] = v
+				end
+			end
+			return Options
+		end,
+
+		Tween = function(Object, Goal, Duration, TweenType, Callback)
+			local Tween = Main.Services.tweenService:Create(Object, TweenInfo.new(Duration, TweenType[1], TweenType[2]), Goal)
+			Tween:Play()
+			if Callback then
+				Tween.Completed:Connect(function()
+					Callback()
+				end)
+			end
+			return Tween
+		end,
+
+		Dragify = function(Frame)
+			local dragging = false
+			local dragInput, mousePos, framePos
+			local touchInput = nil
+
+			local function _update(input)
+				local delta = input.Position - mousePos
+				local newPosition = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+				Main.Utilities.Tween(Frame, {Position = newPosition}, 0.2, Main.TweenTypes.Drag)
+			end
+
+			Frame.InputBegan:Connect(function(input)
+				if (input.UserInputType == Enum.UserInputType.MouseButton1 and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true or input.UserInputType == Enum.UserInputType.Touch) and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true then
+					dragging = true
+					mousePos = input.Position
+					framePos = Frame.Position
+					if Main.Services.UIS.TouchEnabled then
+						Main.Services.UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+						Main.Services.UIS.ModalEnabled = true
+						Main.Vars.Camera.CameraType = Enum.CameraType.Scriptable
+					end
+
+					input.Changed:Connect(function()
+						if input.UserInputState == Enum.UserInputState.End then
+							dragging = false
+							if Main.Services.UIS.TouchEnabled then
+								Main.Services.UIS.MouseBehavior = Enum.MouseBehavior.Default
+								Main.Services.UIS.ModalEnabled = false
+								Main.Vars.Camera.CameraType = Enum.CameraType.Custom
+							end
+						end
+					end)
+				end
+			end)
+
+			Frame.InputChanged:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+					dragInput = input
+				end
+			end)
+
+			Main.Services.UIS.InputChanged:Connect(function(input)
+				if (input == dragInput or input == touchInput) and dragging and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true then
+					_update(input)
+				end
+			end)
+		end,
+
+		NewObj = function (className, properties)
+			local instance = Instance.new(className)
+			for prop, value in pairs(properties) do
+				instance[prop] = value
+			end
+			return instance
+		end,
+
+		CheckDevice = function()
+			if Main.Services.UIS.TouchEnabled then
+				Main.Vars.DynamicSize = UDim2.new(0, 370, 0, 220)
+				return true
+			else
+				Main.Vars.DynamicSize = UDim2.new(0, 470, 0, 320)
+				return false
+			end
+		end,
+
+		Cursor = function (frame, rbxassetid)
+			if not frame or not rbxassetid then
+				warn("Invalid parameters. Please provide a valid frame and rbxassetid.")
+				return
+			end
+
+			local customCursor = Instance.new("ImageLabel")
+			customCursor.Name = "CustomCursor"
+			customCursor.Size = UDim2.new(0, 20, 0, 20)
+			customCursor.Position = UDim2.new(0, 5, 0, 0)
+			customCursor.BackgroundTransparency = 1
+			customCursor.Image = "rbxassetid://" .. rbxassetid
+			customCursor.Parent = frame
+
+			local function onRenderStep()
+				local mouse = game.Players.LocalPlayer:GetMouse()
+				local mouseX = mouse.X
+				local mouseY = mouse.Y
+				local framePosition = frame.AbsolutePosition
+				local frameSize = frame.AbsoluteSize
+
+				if mouseX >= framePosition.X and mouseX <= framePosition.X + frameSize.X and
+					mouseY >= framePosition.Y and mouseY <= framePosition.Y + frameSize.Y then
+					customCursor.Position = UDim2.new(0, mouseX - framePosition.X - (customCursor.Size.X.Offset / 2) + 5, 0, mouseY - framePosition.Y - (customCursor.Size.Y.Offset / 2) + 5)
+					customCursor.Visible = true
+					Main.Services.UIS.MouseIconEnabled = false
+				else
+					customCursor.Visible = false
+					Main.Services.UIS.MouseIconEnabled = true
+				end
+			end
+			Main.Services.runService.RenderStepped:Connect(onRenderStep)
+		end	
+	}
+}
+
+Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
+Main.Utilities.CheckDevice()
+
+_Tone = {}
+_Notifications = {} 
+
+function _Tone:Window(options)
+	options = Main.Utilities.Settings({
+		Title = "Tone Hub Baseplate",
+		Discord = "Not Set",
+		Youtube = "Not Set",
+	}, options or {})
+	local Tone = {
+		CurrentTab = nil,
+	}
+
+	-- Main
+	do
+		-- Rendering
+		do
+			Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
+				Parent = Main.Services.runService:IsStudio() and Main.Vars.localPlayer:WaitForChild("PlayerGui") or Main.Services.coreGui,
+				IgnoreGuiInset = true,
+				ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
+				Name = "Tone - By Zephy",
+				ResetOnSpawn = false
+			})
+
+			Tone.NotificationsFrame = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.Gui,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				AnchorPoint = Vector2.new(1, 0),
+				Size = UDim2.new(0, 180, 1, 0),
+				Position = UDim2.new(1, 0, 0, 0),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "Notifications",
+				BackgroundTransparency = 1,
+				SelectionGroup = true
+			})
+
+			Tone.NotificationsListLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = Tone.NotificationsFrame,
+				Padding = UDim.new(0, 5),
+				VerticalAlignment = Enum.VerticalAlignment.Bottom,
+				SortOrder = Enum.SortOrder.LayoutOrder
+			})
+
+			Tone.NotificationsPadding = Main.Utilities.NewObj("UIPadding", {
+				Parent = Tone.NotificationsFrame,
+				PaddingTop = UDim.new(0, 5),
+				PaddingRight = UDim.new(0, 5),
+				PaddingLeft = UDim.new(0, 5),
+				PaddingBottom = UDim.new(0, 5)
+			})
+
+			Tone.MainFrame = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.Gui,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = Main.Vars.DynamicSize,
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "Main"
+			})
+
+			Tone.MainCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = Tone.MainFrame,
+				CornerRadius = UDim.new(0, 6)
+			})
+
+			Tone.ShadowFrame = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.MainFrame,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				Size = UDim2.new(1, 0, 1, 0),
+				Name = "Shadow",
+				BackgroundTransparency = 1
+			})
+
+			Tone.ShadowImage = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Tone.ShadowFrame,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				SliceCenter = Rect.new(49, 49, 450, 450),
+				ScaleType = Enum.ScaleType.Slice,
+				ImageTransparency = 0.2,
+				ImageColor3 = Color3.fromRGB(0, 0, 0),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Image = "rbxassetid://6014261993",
+				Size = UDim2.new(1, 47, 1, 47),
+				BackgroundTransparency = 1,
+				Name = "Shadow",
+				Position = UDim2.new(0.5, 0, 0.5, 0)
+			})
+
+			Tone.Divider = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.MainFrame,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+				Size = UDim2.new(0, 1, 1, 0),
+				Position = UDim2.new(0, 120, 0, 0),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "Divider"
+			})
+
+			Tone.NavigationFrame = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.MainFrame,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				Size = UDim2.new(0, 120, 1, 0),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "Navigation",
+				BackgroundTransparency = 1
+			})
+
+			Tone.TitleLabel = Main.Utilities.NewObj("TextLabel", {
+				Parent = Tone.NavigationFrame,
+				TextWrapped = true,
+				BorderSizePixel = 0,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 24,
+				FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0.5, 0),
+				Size = UDim2.new(1, 0, 0, 60),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Text = options.Title,
+				Name = "Title",
+				Position = UDim2.new(0.5, 0, 0, 15)
+			})
+
+			Tone.TabButtons = Main.Utilities.NewObj("ScrollingFrame", {
+				Parent = Tone.NavigationFrame,
+				Active = true,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				Name = "TabButtons",
+				Size = UDim2.new(1, 0, 1, -76),
+				ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
+				Position = UDim2.new(0, 0, 0, 76),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				ScrollBarThickness = 0,
+				BackgroundTransparency = 1
+			})
+
+			Tone.TabButtonsLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = Tone.TabButtons,
+				Padding = UDim.new(0, 5),
+				SortOrder = Enum.SortOrder.LayoutOrder
+			})
+
+			Tone.TabArea = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.MainFrame,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				Size = UDim2.new(1, -120, 1, 0),
+				Position = UDim2.new(0, 120, 0, 0),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "TabArea",
+				BackgroundTransparency = 1
+			})
+		end
+		-- Tab/Logic
+		do
+			-- Tab
+			function Tone:Tab(options)
+				options = Main.Utilities.Settings({
+					Title = "Preview Tab"
+				}, options or {})
+				local Tab = {
+					Hover = false,
+					Active = false
+				}
+
+				-- Rendering
+				do
+					Tab.CurrentTabLabel = Main.Utilities.NewObj("TextLabel", {
+						Parent = Tone.TabArea,
+						BorderSizePixel = 0,
+						Visible = false,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						TextSize = 16,
+						FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+						TextColor3 = Color3.fromRGB(255, 255, 255),
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0, 90, 0, 10),
+						BorderColor3 = Color3.fromRGB(0, 0, 0),
+						Text = options.Title,
+						Name = "CurrentTabLabel",
+						Position = UDim2.new(0, 15, 0, 25)
+					})
+
+					Tab.Tab = Main.Utilities.NewObj("ScrollingFrame", {
+						Parent = Tone.TabArea,
+						Visible = false,
+						BorderSizePixel = 0,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						Name = "Tab",
+						AnchorPoint = Vector2.new(0, 1),
+						Size = UDim2.new(1, -10, 1, -55),
+						ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
+						Position = UDim2.new(0, 5, 1, -5),
+						BorderColor3 = Color3.fromRGB(0, 0, 0),
+						ScrollBarThickness = 0,
+						BackgroundTransparency = 1
+					})
+
+					Tab.TabLayout = Main.Utilities.NewObj("UIListLayout", {
+						Parent = Tab.Tab,
+						HorizontalAlignment = Enum.HorizontalAlignment.Right,
+						Padding = UDim.new(0, 5),
+						SortOrder = Enum.SortOrder.LayoutOrder
+					})
+
+					Tab.TabButton = Main.Utilities.NewObj("TextLabel", {
+						Parent = Tone.TabButtons,
+						BorderSizePixel = 0,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						TextSize = 13,
+						FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+						TextColor3 = Color3.fromRGB(101, 101, 101),
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 0, 25),
+						BorderColor3 = Color3.fromRGB(0, 0, 0),
+						Text = options.Title,
+						Name = "Tab"
+					})
+
+					Tab.TabButtonActivated = Main.Utilities.NewObj("Frame", {
+						Parent = Tab.TabButton,
+						BorderSizePixel = 0,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						Position = UDim2.new(0, -1, 0.5, 0),
+						BorderColor3 = Color3.fromRGB(0, 0, 0),
+						Name = "Activated"
+					})
+
+					Tab.TabButtonActivatedCorner = Main.Utilities.NewObj("UICorner", {
+						Parent = Tab.TabButtonActivated,
+						CornerRadius = UDim.new(0, 6)
+					})
+
+					Tab.UIPadding = Main.Utilities.NewObj("UIPadding", {
+						Parent = Tab.Tab,
+						PaddingLeft = UDim.new(0, 20);
+					})
+				end
+				-- Logic
+				do
+					-- Methods
+					do
+						function Tab:__1J7()
+							if Tab.Active then
+								Tab.Active = false
+								Tab.Hover = false
+								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Click)
+								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.4, Main.TweenTypes.Click)
+								Tab.Tab.Visible = false
+								Tab.CurrentTabLabel.Visible = false
+							end
+						end
+
+						function Tab:_JSWT()
+							if not Tab.Active then
+								if Tone.CurrentTab ~= nil then
+									Tone.CurrentTab:__1J7()
+								end
+								Tab.Active = true
+								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(255, 255, 255)}, 0.8, Main.TweenTypes.Click)
+								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0,7, 1, 0)}, 0.8, Main.TweenTypes.Click)
+								Tab.Tab.Visible = true
+								Tab.CurrentTabLabel.Visible = true
+								Tone.CurrentTab = Tab
+							end
+						end
+					end
+					-- Main
+					do
+						Tab.TabButton.MouseEnter:Connect(function()
+							Tab.Hover = true
+							if not Tab.Active then
+								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(200, 200, 200)}, 0.8, Main.TweenTypes.Hover)
+								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 7, 0.3, 0)}, 0.8, Main.TweenTypes.Hover)
+							end
+						end)
+
+						Tab.TabButton.MouseLeave:Connect(function()
+							Tab.Hover = false
+							if not Tab.Active then
+								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Hover)
+								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.1, Main.TweenTypes.Hover)
+							end
+						end)
+
+						Main.Services.UIS.InputBegan:Connect(function(input)
+							if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Tab.Hover then
+								Tab:_JSWT()	
+							end
+						end)
+
+						if Tone.CurrentTab == nil then
+							Tab:_JSWT()
+						end
+					end
+					-- Tab Elements
+					do
+						function Tab:Label(options)
+							options = Main.Utilities.Settings({
+								Text = "Preview Label"
+							}, options or {})
+
+							local Label = {}
+
+							-- Rendering
+							do
+								Label.MainText = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextWrapped = true,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(200, 200, 200),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "Label",
+									Text = options.Text,
+								})
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Label:SetText(text)
+										options.Text = text
+										Label:_update()
+									end
+
+									function Label:_update()
+										Label.MainText.Text = options.Text
+										Label.MainText.Size = UDim2.new(1, 0, 0, math.huge)
+										Label.MainText.Size = UDim2.new(1, 0, 0, Label.MainText.TextBounds.Y)
+										Main.Utilities.Tween(Label.MainText, {Size = UDim2.new(1, 0, 0, Label.MainText.TextBounds.Y + 20)}, 0.2, Main.TweenTypes.Click)
+									end
+
+									Label:_update()
+								end
+								-- Main
+								do
+									Label.MainText.MouseEnter:Connect(function()
+										Main.Utilities.Tween(Label.MainText, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+									end)
+
+									Label.MainText.MouseLeave:Connect(function()
+										Main.Utilities.Tween(Label.MainText, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+									end)
+								end
+							end
+							return Label
+						end
+
+						function Tab:Warning(options)
+							options = Main.Utilities.Settings({
+								Text = "Preview Warning"
+							}, options or {})
+
+							local Warning = {}
+
+							-- Rendering
+							do
+								Warning.MainText = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextWrapped = true,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(200, 200, 200),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(255, 221, 67),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "Label",
+									Text = options.Text,
+								})
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Warning:SetText(text)
+										options.Text = text
+										Warning:_update()
+									end
+
+									function Warning:_update()
+										Warning.MainText.Text = options.Text
+										Warning.MainText.Size = UDim2.new(1, 0, 0, math.huge)
+										Warning.MainText.Size = UDim2.new(1, 0, 0, Warning.MainText.TextBounds.Y)
+										Main.Utilities.Tween(Warning.MainText, {Size = UDim2.new(1, 0, 0, Warning.MainText.TextBounds.Y + 20)}, 0.2, Main.TweenTypes.Click)
+									end
+
+									Warning:_update()
+								end
+								-- Main
+								do
+									Warning.MainText.MouseEnter:Connect(function()
+										Main.Utilities.Tween(Warning.MainText, {TextColor3 = Color3.fromRGB(255, 221, 67)}, 0.4, Main.TweenTypes.Hover)
+									end)
+
+									Warning.MainText.MouseLeave:Connect(function()
+										Main.Utilities.Tween(Warning.MainText, {TextColor3 = Color3.fromRGB(195, 169, 51)}, 0.4, Main.TweenTypes.Hover)
+									end)
+								end
+							end
+							return Warning
+						end
+
+						function Tab:Bind(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Bind",
+								DefaultBind = "E",
+								Callback = function(v) print(v) end
+							}, options or {})
+
+							local Bind = {
+								Hover = false,
+								CurrentBind = options.DefaultBind:sub(1, 1)
+							}
+
+							-- Rendering
+							do
+								Bind.BindLabel = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = options.Title,
+									Name = "Bind",
+									Position = UDim2.new(1, 0, 0, 0)
+								})
+
+								Bind.IconHolder = Main.Utilities.NewObj("Frame", {
+									Parent = Bind.BindLabel,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(1, 0.5),
+									Size = UDim2.new(0, 20, 0, 20),
+									Position = UDim2.new(1, -2, 0.5, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "IconHolder"
+								})
+
+								Bind.IconHolderCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Bind.IconHolder,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								Bind.ValueLabel = Main.Utilities.NewObj("TextLabel", {
+									Parent = Bind.IconHolder,
+									TextSize = 10,
+									FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(255, 255, 255),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(0.5, 0.5),
+									Size = UDim2.new(1, 0, 1, 0),
+									Text = options.DefaultBind,
+									Name = "Value",
+									Position = UDim2.new(0.5, 0, 0.5, 0)
+								})
+
+								Bind.ValuePadding = Main.Utilities.NewObj("UIPadding", {
+									Parent = Bind.ValueLabel,
+									PaddingLeft = UDim.new(0, 1)
+								})
+							end
+							-- Logic
+							do
+								Bind.BindLabel.MouseEnter:Connect(function()
+									Bind.Hover = true
+									Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+								end)
+
+								Bind.BindLabel.MouseLeave:Connect(function()
+									Bind.Hover = false
+									Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+								end)
+
+								Main.Services.UIS.InputBegan:Connect(function(input)
+									if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Bind.Hover then
+										Bind.BindLabel.Text = "Listening..."	
+										Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
+										local inputConnection
+										inputConnection = Main.Services.UIS.InputBegan:Connect(function(input)
+											if input.UserInputType == Enum.UserInputType.Keyboard then
+												if Bind.Hover then
+													Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Click)
+												else
+													Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Click)
+												end
+												Bind.BindLabel.Text = options.Title
+												Bind.ValueLabel.Text = input.KeyCode.Name
+												Bind.CurrentBind = input.KeyCode.Name:sub(1, 1)
+												inputConnection:Disconnect()
+											end
+										end)
+									end
+
+									if (input.KeyCode == Enum.KeyCode[Bind.CurrentBind]) then
+										options.Callback(Bind.CurrentBind)
+									end
+								end)
+							end
+							return Bind
+						end
+
+						function Tab:Button(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Button",
+								Callback = function() end
+							}, options or {})
+
+							local Button = {
+								Hover = false,
+								MouseDown = false
+							}
+
+							-- Rendering
+							do
+								Button.Button = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(200, 200, 200),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = options.Title,
+									Name = "Button",
+									Position = UDim2.new(1, 0, 0, 0)
+								})
+
+								Button.IconHolder = Main.Utilities.NewObj("Frame", {
+									Parent = Button.Button,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(1, 0.5),
+									Size = UDim2.new(0, 20, 0, 20),
+									Position = UDim2.new(1, 0, 0.5, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "IconHolder",
+									BackgroundTransparency = 1
+								})
+
+								Button.IconHolderCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Button.IconHolder,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								Button.ButtonIcon = Main.Utilities.NewObj("ImageLabel", {
+									Parent = Button.IconHolder,
+									Image = "rbxassetid://13859307670",
+									Size = UDim2.new(1, 0, 1, 0),
+									BackgroundTransparency = 1,
+									Name = "Button",
+									Position = UDim2.new(0, -2, 0, 0)
+								})
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Button:SetText(text)
+										Button.Button.Title = text
+										options.name = text
+									end
+
+									function Button:SetCallback(fn)
+										options.callback = fn
+									end
+								end
+								-- Main
+								do
+									Button.Button.InputBegan:Connect(function()
+										Button.Hover = true
+										if not Button.MouseDown then
+											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Button.Button.InputEnded:Connect(function()
+										Button.Hover = false
+										if not Button.MouseDown then
+											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Main.Services.UIS.InputBegan:Connect(function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Button.Hover then
+											Button.MouseDown = true
+											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
+											options.Callback()
+										end
+									end)
+
+									Main.Services.UIS.InputEnded:Connect(function(input)
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+											Button.MouseDown = false
+											if Button.Hover then
+												Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+											else
+												Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+											end
+										end
+									end)
+								end
+							end
+							return Button	
+						end
+
+						function Tab:Toggle(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Toggle",
+								State = false,
+								Callback = function(v) print(v) end
+							}, options or {})
+
+							local Toggle = {
+								Hover = false,
+								MouseDown = false,
+								State = options.State
+							}
+
+							-- Rendering
+							do
+								Toggle.Toggle = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = options.Title,
+									Name = "Toggle",
+									Position = UDim2.new(1, 0, 0, 0)
+								})
+
+								Toggle.Check = Main.Utilities.NewObj("Frame", {
+									Parent = Toggle.Toggle,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(1, 0.5),
+									Size = UDim2.new(0, 15, 0, 15),
+									Position = UDim2.new(1, -5, 0.5, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "Check"
+								})
+
+								Toggle.CheckCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Toggle.Check,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								Toggle.CheckIcon = Main.Utilities.NewObj("ImageLabel", {
+									Parent = Toggle.Check,
+									ImageColor3 = Color3.fromRGB(19, 19, 19),
+									Image = "rbxassetid://14950021853",
+									Size = UDim2.new(1, 0, 1, 0),
+									ImageTransparency = 1,
+									BackgroundTransparency = 1,
+									Name = "check"
+								})
+
+								Toggle.CheckIconCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Toggle.Check,
+									CornerRadius = UDim.new(0, 4)
+								})
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Toggle:ToggleState(Bool)
+										if Bool == nil then
+											Toggle.State = not Toggle.State
+										else
+											Toggle.State = Bool
+										end
+
+										if Toggle.State then
+											Main.Utilities.Tween(Toggle.Check, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
+											Main.Utilities.Tween(Toggle.CheckIcon, {ImageTransparency = 0}, 0.4, Main.TweenTypes.Click)
+										else
+											Main.Utilities.Tween(Toggle.Check, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.4, Main.TweenTypes.Click)
+											Main.Utilities.Tween(Toggle.CheckIcon, {ImageTransparency = 1}, 0.4, Main.TweenTypes.Click)
+										end
+										options.Callback(Toggle.State)	
+									end
+
+									Toggle:ToggleState(options.State)
+								end
+								-- Main
+								do
+									Toggle.Toggle.InputBegan:Connect(function()
+										Toggle.Hover = true
+
+										if not Toggle.MouseDown then
+											Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Toggle.Toggle.InputEnded:Connect(function()
+										Toggle.Hover = false
+
+										if not Toggle.MouseDown then
+											Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Main.Services.UIS.InputBegan:Connect(function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Toggle.Hover then
+											Toggle.MouseDown = true
+											Toggle:ToggleState()
+										end
+									end)
+
+									Main.Services.UIS.InputEnded:Connect(function(input)
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+											Toggle.MouseDown = false
+											if Toggle.Hover then
+												Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+											else
+												Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+											end
+										else
+											return
+										end
+									end)
+								end
+							end
+							return Toggle
+						end
+
+						function Tab:Slider(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Slider",
+								Default = 50,
+								Min = 0,
+								Max = 100,
+								Callback = function(v) print(v) end
+							}, options or {})
+
+							local Slider = {
+								MouseDown = false,
+								Hover = false,
+								Connection = nil
+							}
+
+							-- Rendering
+							do
+								Slider.Slider = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 40),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = "Slider",
+									Name = "Slider",
+									Position = UDim2.new(1, 0, 0, 0)
+								})
+
+								Slider.IconHolder = Main.Utilities.NewObj("Frame", {
+									Parent = Slider.Slider,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(1, 0.5),
+									Size = UDim2.new(0, 20, 0, 20),
+									Position = UDim2.new(1, 0, 0.5, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "IconHolder",
+									BackgroundTransparency = 1
+								})
+
+								Slider.IconHolderCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Slider.IconHolder,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								Slider.Value = Main.Utilities.NewObj("TextLabel", {
+									Parent = Slider.IconHolder,
+									TextSize = 10,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(255, 255, 255),
+									BackgroundTransparency = 1,
+									Size = UDim2.new(1, 0, 1, 0),
+									Text = "100",
+									Name = "Value",
+									Position = UDim2.new(0, -2, 0, 2)
+								})
+
+								Slider.UIPadding = Main.Utilities.NewObj("UIPadding", {
+									Parent = Slider.Slider,
+									PaddingBottom = UDim.new(0, 10)
+								})
+
+								Slider.SliderBG = Main.Utilities.NewObj("Frame", {
+									Parent = Slider.Slider,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(0, 1),
+									Size = UDim2.new(1, -5, 0, 4),
+									Position = UDim2.new(0, 0, 1, 5),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "SliderBG"
+								})
+
+								Slider.SliderBGCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Slider.SliderBG,
+									CornerRadius = UDim.new(0, 12)
+								})
+
+								Slider.Drag = Main.Utilities.NewObj("Frame", {
+									Parent = Slider.SliderBG,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									Size = UDim2.new(0.5, 0, 1, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "Drag"
+								})
+
+								Slider.DragCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Slider.Drag,
+									CornerRadius = UDim.new(0, 12)
+								})
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Slider:SetValue(v)
+										if v == nil then
+											local percentage = math.clamp((Main.Vars.Mouse.X - Slider.Slider.AbsolutePosition.X) / Slider.Slider.AbsoluteSize.X, 0, 1)
+											local value = math.floor(((options.Max - options.Min) * percentage) + options.Min)
+
+											Slider.Value.Text = tostring(value)
+											Main.Utilities.Tween(Slider.Drag, {Size = UDim2.fromScale(percentage, 1)}, 0.4, Main.TweenTypes.Drag)
+										else
+											local clampedValue = math.clamp(v, options.Min, options.Max)
+											local percentage = (clampedValue - options.Min) / (options.Max - options.Min)
+
+											Slider.Value.Text = tostring(clampedValue)
+											Main.Utilities.Tween(Slider.Drag, {Size = UDim2.fromScale(percentage, 1)}, 0.4, Main.TweenTypes.Drag)
+										end
+
+										options.Callback(Slider:GetValue())
+									end
+
+									function Slider:GetValue()
+										return tonumber(Slider.Value.Text)
+									end
+
+									Slider:SetValue(options.Default)
+								end
+								-- Main
+								do
+									Slider.Slider.MouseEnter:Connect(function()
+										Slider.Hover = true
+
+										if not Slider.MouseDown then
+											Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Slider.Slider.MouseLeave:Connect(function()
+										Slider.Hover = false
+
+										if not Slider.MouseDown then
+											Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Main.Services.UIS.InputBegan:Connect(function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Slider.Hover then
+											Main.Vars.stop = true
+											Slider.MouseDown = true
+											Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Hover)
+
+											if not Slider.Connection then
+												Slider.Connection = Main.Services.runService.RenderStepped:Connect(function()
+													Slider:SetValue()
+												end)
+											end
+										end
+									end)
+
+									Main.Services.UIS.InputEnded:Connect(function(input)
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+											Main.Vars.stop = false
+											Slider.MouseDown = false
+
+											if Slider.Hover then
+												Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+											else
+												Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+											end
+
+											if Slider.Connection then Slider.Connection:Disconnect() end
+											Slider.Connection = nil
+										end
+									end)
+								end
+							end
+							return Slider
+						end	
+
+						function Tab:Dropdown(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Dropdown",
+								Items = {},
+								Selectmode = false
+							}, options or {})
+
+							local Dropdown = {
+								Items = {
+									["id"] = { 
+										"value"
+									}
+								},
+								Open = false,
+								MouseDown = false,
+								Hover = false,
+								HoveringItem = false,
+								SelectedItems = {}
+							}
+
+							-- Rendering
+							do
+								Dropdown.Dropdown = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									TextYAlignment = Enum.TextYAlignment.Top,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									ClipsDescendants = true,
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = "Dropdown",
+									LayoutOrder = 3,
+									Name = "Dropdown",
+									Position = UDim2.new(1, 0, 0, 0),
+								})
+
+								Dropdown.IconHolder = Main.Utilities.NewObj("Frame", {
+									Parent = Dropdown.Dropdown,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(0, 20, 0, 20),
+									Position = UDim2.new(1, 0, 0, -3),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Name = "IconHolder",
+									BackgroundTransparency = 1,
+								})
+
+								Dropdown.IconHolderCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Dropdown.IconHolder,
+									CornerRadius = UDim.new(0, 4),
+								})
+
+								Dropdown.IconValue = Main.Utilities.NewObj("ImageLabel", {
+									Parent = Dropdown.IconHolder,
+									Image = [[rbxassetid://14951833548]],
+									Size = UDim2.new(1, 0, 1, 0),
+									BackgroundTransparency = 1,
+									Name = "Value",
+									Position = UDim2.new(0, -2, 0, 0),
+								})
+
+								Dropdown.UIPadding = Main.Utilities.NewObj("UIPadding", {
+									Parent = Dropdown.Dropdown,
+									PaddingTop = UDim.new(0, 5),
+								})
+
+								Dropdown.DropdownItems = Main.Utilities.NewObj("ScrollingFrame", {
+									Parent = Dropdown.Dropdown,
+									Visible = false,
+									Active = true,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									Name = "DropdownItems",
+									Size = UDim2.new(1, -5, 1, -22),
+									ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
+									Position = UDim2.new(0, 0, 0, 17),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									ScrollBarThickness = 0,
+									BackgroundTransparency = 1,
+								})
+
+								Dropdown.DropdownItemsCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = Dropdown.DropdownItems,
+									CornerRadius = UDim.new(0, 4),
+								})
+
+								Dropdown.UIListLayout = Main.Utilities.NewObj("UIListLayout", {
+									Parent = Dropdown.DropdownItems,
+									Padding = UDim.new(0, 5),
+									SortOrder = Enum.SortOrder.LayoutOrder,
+								})
+
+							end
+							-- Logic
+							do
+								-- Methods
+								do
+									function Dropdown:Add(Id, Title, Callback)
+										Callback = Callback or function(Id, Title) print(Id, Title) end
+
+										local Item = {
+											Hover = false,
+											MouseDown = false,
+											Selected = false
+										}
+
+										if Dropdown.Items[Id] ~= nil then
+											return
+										end
+
+										Dropdown.Items[Id] = {
+											instance = {},
+											value = Title
+										}
+
+										-- Rendering
+										do
+											Dropdown.Items[Id].instance.Item = Main.Utilities.NewObj("TextLabel", {
+												Parent = Dropdown.DropdownItems,
+												BorderSizePixel = 0,
+												TextXAlignment = Enum.TextXAlignment.Left,
+												BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+												TextSize = 10,
+												FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+												TextColor3 = Color3.fromRGB(255, 255, 255),
+												Size = UDim2.new(1, 0, 0, 20),
+												BorderColor3 = Color3.fromRGB(0, 0, 0),
+												Text = "Item",
+												Name = "Item",
+											})
+
+											Dropdown.Items[Id].instance.ItemCorner = Main.Utilities.NewObj("UICorner", {
+												Parent = Dropdown.Items[Id].instance.Item,
+												CornerRadius = UDim.new(0, 4),
+											})
+
+											Dropdown.Items[Id].instance.ItemPadding = Main.Utilities.NewObj("UIPadding", {
+												Parent = Dropdown.Items[Id].instance.Item,
+												PaddingLeft = UDim.new(0, 5),
+											})
+										end
+
+										-- Logic
+										do
+											-- Methods
+											do
+												function setHoverAppearance()
+													if not Item.MouseDown then
+														if options.Selectmode then
+															if Item.Selected then
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+															else
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+															end
+														else
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
+														end
+													end
+												end
+
+												function resetAppearance()
+													if Item.MouseDown then
+														return
+													end
+
+													if options.Selectmode then
+														if Item.Selected then
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Hover)
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+														else
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+														end
+													else
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+													end
+												end
+											end
+											-- Main
+											do
+												Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
+													Item.Hover = true
+													Dropdown.HoveringItem = true
+													setHoverAppearance()
+												end)
+
+												Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
+													Item.Hover = false
+													Dropdown.HoveringItem = false
+													resetAppearance()
+												end)
+
+												Main.Services.UIS.InputBegan:Connect(function(input)
+													if Dropdown.Items[Id] == nil then return end
+
+													if (input.UserInputType == Enum.UserInputType.MouseButton1 and Item.Hover) or (input.UserInputType == Enum.UserInputType.Touch and Item.Hover) then
+														Item.MouseDown = true
+
+														if options.Selectmode then
+															Item.Selected = not Item.Selected
+															Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+															if Item.Hover then
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Click)
+															else
+																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
+															end
+														else
+															for i, v in pairs(Dropdown.Items) do
+																if v.instance then
+																	v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
+																end
+															end
+															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
+															Dropdown.SelectedItems = { [Id] = Title }
+															Dropdown:Toggle()
+														end
+														Callback(Id, Title)
+													end
+												end)
+
+												Main.Services.UIS.InputEnded:Connect(function(input)
+													if Dropdown.Items[Id] == nil then return end
+
+													if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+														Item.MouseDown = false
+														resetAppearance()
+													end
+												end)
+											end
+										end
+									end
+
+									function Dropdown:GetSelectedItems()
+										local selectedText = ""
+
+										for id, title in pairs(Dropdown.SelectedItems) do
+											if title then
+												selectedText = selectedText .. title .. ", "
+											end
+										end
+
+										if selectedText == "" then
+											return "No items selected"
+										else
+											return selectedText:sub(1, -3)
+										end
+									end
+
+									function Dropdown:Remove(id)
+										if Dropdown.Items[id] ~= nil then
+											if Dropdown.Items[id].instance ~= nil then
+												for i, v in pairs(Dropdown.Items[id].instance) do
+													v:Destroy()
+												end
+											end
+											Dropdown.Items[id] = nil
+										end
+									end
+
+									function Dropdown:Clear()
+										for i, v in pairs(Dropdown.Items) do
+											Dropdown:Remove(i)
+										end
+									end
+
+									function Dropdown:Toggle()
+										Dropdown.Open = not Dropdown.Open
+
+										if not Dropdown.Open and not Dropdown.HoveringItem then
+											Main.Utilities.Tween(Dropdown.Dropdown, {Size = UDim2.new(1, 0, 0, 30)}, 0.4, Main.TweenTypes.Click, function()
+												Dropdown.DropdownItems.Visible = false
+											end)
+										else
+											local count = 0
+											for i, v in pairs(Dropdown.Items) do
+												if v ~= nil then
+													count += 1
+												end
+											end
+
+											Dropdown.DropdownItems.Visible = true
+											Main.Utilities.Tween(Dropdown.Dropdown, {Size = UDim2.new(1, 0, 0, 7 + (count * 20) + 1)}, 0.4, Main.TweenTypes.Click)
+										end
+									end
+								end
+								-- Main
+								do
+									Dropdown.Dropdown.MouseEnter:Connect(function()
+										Dropdown.Hover = true
+										Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+									end)
+
+									Dropdown.Dropdown.MouseLeave:Connect(function()
+										Dropdown.Hover = false
+										if not Dropdown.MouseDown then
+											Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end
+									end)
+
+									Main.Services.UIS.InputBegan:Connect(function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Dropdown.Hover then
+											Dropdown.MouseDown = true
+											Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(255, 255 ,255)}, 0.4, Main.TweenTypes.Click)
+											if not Dropdown.HoveringItem then
+												Dropdown:Toggle()
+											end
+										end
+									end)
+
+									Main.Services.UIS.InputEnded:Connect(function(input)
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+											Dropdown.MouseDown = false
+											if Dropdown.Hover then
+												Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Click)
+											else
+												Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Click)
+											end
+										end
+									end)	
+								end
+							end
+							return Dropdown
+						end	
+					end
+				end	
+				return Tab	
+			end
+		end
+	end
+	-- Actions
+	do
+		local Actions = {
+			Close = false,
+			Open = true,
+			ExitHover = false,
+			OpenHover = false,
+			DiscordHover = false,
+			YoutubeHover = false
+		}
+
+		-- Rendering
+		do
+			Actions.Frame = Main.Utilities.NewObj("Frame", {
+				Parent = Tone.Gui,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+				AnchorPoint = Vector2.new(0.5, 0),
+				Size = UDim2.new(0, 115, 0, 30),
+				Position = UDim2.new(0.5, 0, 0, 5),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = "Actions"
+			})
+
+			Actions.UICorner = Main.Utilities.NewObj("UICorner", {
+				Parent = Actions.Frame,
+				CornerRadius = UDim.new(0, 6)
+			})
+
+			Actions.DropShadowHolder = Main.Utilities.NewObj("Frame", {
+				Parent = Actions.Frame,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.new(1, 0, 1, 0),
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Name = "DropShadowHolder",
+				BackgroundTransparency = 1
+			})
+
+			Actions.DropShadow = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Actions.DropShadowHolder,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				SliceCenter = Rect.new(49, 49, 450, 450),
+				ScaleType = Enum.ScaleType.Slice,
+				ImageTransparency = 0.5,
+				ImageColor3 = Color3.fromRGB(0, 0, 0),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Image = "rbxassetid://6014261993",
+				Size = UDim2.new(1, 31, 1, 31),
+				BackgroundTransparency = 1,
+				Name = "DropShadow",
+				Position = UDim2.new(0.5, 0, 0.5, 0)
+			})
+
+			Actions.YoutubeIcon = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Actions.Frame,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Image = "rbxassetid://15199293149",
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Name = "Youtube",
+				Position = UDim2.new(0, 5, 0.5, 0)
+			})
+
+			Actions.DiscordIcon = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Actions.Frame,
+				AnchorPoint = Vector2.new(1, 0.5),
+				Image = "rbxassetid://127970682686597",
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Name = "Discord",
+				Position = UDim2.new(1, -5, 0.5, 0)
+			})
+
+			Actions.OpenIcon = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Actions.Frame,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Image = "rbxassetid://13868576811",
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Name = "Open",
+				Position = UDim2.new(0.5, 13, 0.5, 0)
+			})
+
+			Actions.ExitIcon = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Actions.Frame,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Image = "rbxassetid://13857933221",
+				Size = UDim2.new(0, 20, 0, 20),
+				BackgroundTransparency = 1,
+				Name = "Exit",
+				Position = UDim2.new(0.5, -13, 0.5, 0)
+			})
+		end
+		-- Logic
+		do
+			local ActionHandlers = {}
+
+			ActionHandlers.SetHoverState = function(icon, hoverStateVar)
+				icon.MouseEnter:Connect(function()
+					Actions[hoverStateVar] = true
+				end)
+
+				icon.MouseLeave:Connect(function()
+					Actions[hoverStateVar] = false
+				end)
+			end
+
+			ActionHandlers.CloseFrame = function()
+				Actions.Close = true
+				Actions.Open = false
+				for i, v in Tone.MainFrame:GetDescendants() do
+					if v:IsA("ImageLabel") then
+						Main.Utilities.Tween(v, {ImageTransparency = 1}, 1, Main.TweenTypes.Drag)
+						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
+					elseif v:IsA("TextLabel") then
+						Main.Utilities.Tween(v, {TextTransparency = 1}, 1, Main.TweenTypes.Drag)
+						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
+					elseif v:IsA("Frame") then
+						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
+					end
+				end
+				Main.Utilities.Tween(Tone.MainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 2, Main.TweenTypes.Drag)
+			end
+
+			ActionHandlers.OpenFrame = function()
+				Main.Utilities.Tween(Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 2, Main.TweenTypes.Drag, function()
+					for i, v in Tone.MainFrame:GetDescendants() do
+						if v:IsA("ImageLabel") and v.Name ~= "Shadow" then
+							Main.Utilities.Tween(v, {ImageTransparency = 0}, 1, Main.TweenTypes.Drag)
+							Main.Utilities.Tween(v, {BackgroundTransparency = 0}, 1, Main.TweenTypes.Drag)
+						elseif v:IsA("TextLabel") then
+							Main.Utilities.Tween(v, {TextTransparency = 0}, 1, Main.TweenTypes.Drag)
+						elseif v.Name == "Activated" then
+							Main.Utilities.Tween(v, {BackgroundTransparency = 0}, 1, Main.TweenTypes.Drag)
+						end
+					end
+				end)
+				Actions.Close = false
+				Actions.Open = true
+			end
+
+			ActionHandlers.SetHoverState(Actions.ExitIcon, "ExitHover")
+			ActionHandlers.SetHoverState(Actions.OpenIcon, "OpenHover")
+
+			Main.Services.UIS.InputBegan:Connect(function(input)
+				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+					if Actions.Open and Actions.ExitHover then
+						ActionHandlers.CloseFrame()
+					elseif Actions.OpenHover and Actions.Close then
+						ActionHandlers.OpenFrame()
+					end
+				end
+			end)
+
+			local SocialsHandler = {}
+
+			SocialsHandler.SetHoverState = function(icon, hoverStateVar)
+				icon.MouseEnter:Connect(function()
+					Actions[hoverStateVar] = true
+				end)
+
+				icon.MouseLeave:Connect(function()
+					Actions[hoverStateVar] = false
+				end)
+			end
+
+			SocialsHandler.Discord = function()
+				setclipboard(options.Discord)
+			end
+
+			SocialsHandler.Youtube = function()
+				setclipboard(options.Youtube)
+				print(options.Youtube)
+			end
+
+			SocialsHandler.SetHoverState(Actions.DiscordIcon, "DiscordHover")
+			SocialsHandler.SetHoverState(Actions.YoutubeIcon, "YoutubeHover")
+
+			Main.Services.UIS.InputBegan:Connect(function(input)
+				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+					if Actions.DiscordHover then
+						SocialsHandler.Discord()
+					elseif Actions.YoutubeHover then
+						SocialsHandler.Youtube()
+					end
+				end
+			end)
+		end
+	end	
+	-- Notifications
+	do
+		-- Function to build a notification or warning frame
+		local function NotificationBase(options, frameName, iconId)
+			local Base = {}
+
+			-- Rendering
+			do
+				Base.NotificationFrame = Main.Utilities.NewObj("Frame", {
+					Parent = Tone.NotificationsFrame,
+					BorderSizePixel = 0,
+					BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+					Size = UDim2.new(1, 0, 0, 60),
+					BorderColor3 = Color3.fromRGB(0, 0, 0),
+					Name = frameName
+				})
+
+				Base.NotificationCorner = Main.Utilities.NewObj("UICorner", {
+					Parent = Base.NotificationFrame,
+					CornerRadius = UDim.new(0, 6)
+				})
+
+				Base.DropShadowHolder = Main.Utilities.NewObj("Frame", {
+					Parent = Base.NotificationFrame,
+					ZIndex = 0,
+					BorderSizePixel = 0,
+					Size = UDim2.new(1, 0, 1, 0),
+					Name = "DropShadowHolder",
+					BackgroundTransparency = 1
+				})
+
+				Base.DropShadow = Main.Utilities.NewObj("ImageLabel", {
+					Parent = Base.DropShadowHolder,
+					ZIndex = 0,
+					BorderSizePixel = 0,
+					SliceCenter = Rect.new(49, 49, 450, 450),
+					ScaleType = Enum.ScaleType.Slice,
+					ImageTransparency = 0.5,
+					ImageColor3 = Color3.fromRGB(0, 0, 0),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Image = "rbxassetid://6014261993",
+					Size = UDim2.new(1, 47, 1, 47),
+					BackgroundTransparency = 1,
+					Name = "DropShadow",
+					Position = UDim2.new(0.5, 0, 0.5, 0)
+				})
+
+				Base.Icon = Main.Utilities.NewObj("ImageLabel", {
+					Parent = Base.NotificationFrame,
+					AnchorPoint = Vector2.new(0, 0.5),
+					Image = iconId,
+					Size = UDim2.new(0, 32, 0, 32),
+					BackgroundTransparency = 1,
+					Name = frameName .. "_icon",
+					Position = UDim2.new(0, 14, 0.5, 0)
+				})
+
+				Base.NotifTypeLabel = Main.Utilities.NewObj("TextLabel", {
+					Parent = Base.NotificationFrame,
+					BorderSizePixel = 0,
+					TextWrapped = true,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextYAlignment = Enum.TextYAlignment.Top,
+					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+					TextSize = 14,
+					FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+					TextColor3 = Color3.fromRGB(255, 255, 255),
+					BackgroundTransparency = 1,
+					AnchorPoint = Vector2.new(1, 0),
+					Size = UDim2.new(1, -60, 0, 14),
+					BorderColor3 = Color3.fromRGB(0, 0, 0),
+					Text = options.Title,
+					Name = "NotifType",
+					Position = UDim2.new(1, 0, 0, 14)
+				})
+
+				Base.DescLabel = Main.Utilities.NewObj("TextLabel", {
+					Parent = Base.NotificationFrame,
+					BorderSizePixel = 0,
+					TextWrapped = true,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextYAlignment = Enum.TextYAlignment.Top,
+					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+					TextSize = 9,
+					FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+					TextColor3 = Color3.fromRGB(81, 81, 81),
+					BackgroundTransparency = 1,
+					AnchorPoint = Vector2.new(1, 0),
+					Size = UDim2.new(1, -60, 0, 28),
+					BorderColor3 = Color3.fromRGB(0, 0, 0),
+					Text = options.Description,
+					Name = "Desc",
+					Position = UDim2.new(1, 1, 0, 33)
+				})
+
+				Base.DescPadding = Main.Utilities.NewObj("UIPadding", {
+					Parent = Base.DescLabel,
+					PaddingRight = UDim.new(0, 5),
+					PaddingBottom = UDim.new(0, 5)
+				})
+			end
+
+			-- Logic
+			do
+				Base.DescLabel.Size = UDim2.new(Base.DescLabel.Size.X.Scale, Base.DescLabel.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y)
+				Base.NotifTypeLabel.Size = UDim2.new(Base.NotifTypeLabel.Size.X.Scale, Base.NotifTypeLabel.Size.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y)
+				Base.DescLabel.Position = UDim2.new(Base.NotifTypeLabel.Position.X.Scale, Base.NotifTypeLabel.Position.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y + 19)
+				Main.Utilities.Tween(Base.NotificationFrame, {
+					Size = UDim2.new(Base.NotificationFrame.Size.X.Scale, Base.NotificationFrame.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y + Base.NotifTypeLabel.TextBounds.Y + 34)
+				}, 0.2, Main.TweenTypes.Hover)
+
+				coroutine.wrap(function()
+					task.wait(options.Duration)
+
+					Main.Utilities.Tween(Base.NotificationFrame, {BackgroundTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+
+					for _, v in pairs(Base.NotificationFrame:GetDescendants()) do
+						if v:IsA("ImageLabel") then
+							Main.Utilities.Tween(v, {ImageTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+						elseif v:IsA("TextLabel") then
+							Main.Utilities.Tween(v, {TextTransparency = 1}, 1.2, Main.TweenTypes.Drag)
+						end
+					end
+
+					task.wait(0.8)
+					Base.NotificationFrame:Destroy()
+
+				end)()	
+			end
+			return Base	
+		end
+
+		function _Notifications:Notify(options)
+			options = Main.Utilities.Settings({
+				Title = "Preview Notification",
+				Description = "Preview Description",
+				Duration = 2
+			}, options or {})
+
+			-- Rendering/Logic
+			local Notify = NotificationBase(options, "Notification", "rbxassetid://14957911417")
+			return Notify
+		end
+
+		function _Notifications:Warn(options)
+			options = Main.Utilities.Settings({
+				Title = "Preview Warning",
+				Description = "Preview Warning",
+				Duration = 2
+			}, options or {})
+
+			-- Rendering/Logic
+			local Warn = NotificationBase(options, "Warning", "rbxassetid://14966839736")
+			return Warn
+		end
+	end
+	Main.Utilities.Dragify(Tone.MainFrame)
+	Main.Utilities.Cursor(Tone.MainFrame, 83884515509675)
+	return Tone
+end
