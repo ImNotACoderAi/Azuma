@@ -23,58 +23,60 @@ Main = {
 	},
 
 	Utilities = {
+		-- Merges default values with provided options.
 		Settings = function(Defaults, Options)
 			for i, v in pairs(Defaults) do
-				if Options[i] == nil then
-					Options[i] = v
-				end
+				Options[i] = Options[i] or v  -- Simplified conditional assignment
 			end
 			return Options
 		end,
 
+		-- Creates and plays a tween animation with an optional callback.
 		Tween = function(Object, Goal, Duration, TweenType, Callback)
 			local Tween = Main.Services.tweenService:Create(Object, TweenInfo.new(Duration, TweenType[1], TweenType[2]), Goal)
 			Tween:Play()
 			if Callback then
-				Tween.Completed:Connect(function()
-					Callback()
-				end)
+				Tween.Completed:Once(Callback)  -- Using `Once` to avoid potential memory leaks from multiple connections
 			end
 			return Tween
 		end,
 
+		-- Allows dragging of a UI frame with smooth movement.
 		Dragify = function(Frame)
-			local dragging = false
-			local dragInput, mousePos, framePos
-			local touchInput = nil
+			local dragging, dragInput, mousePos, framePos
+			local UIS, Camera = Main.Services.UIS, Main.Vars.Camera
 
-			local function _update(input)
+			local function update(input)
 				local delta = input.Position - mousePos
 				local newPosition = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
 				Main.Utilities.Tween(Frame, {Position = newPosition}, 0.2, Main.TweenTypes.Drag)
 			end
 
 			Frame.InputBegan:Connect(function(input)
-				if (input.UserInputType == Enum.UserInputType.MouseButton1 and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true or input.UserInputType == Enum.UserInputType.Touch) and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true then
-					dragging = true
-					mousePos = input.Position
-					framePos = Frame.Position
-					if Main.Services.UIS.TouchEnabled then
-						Main.Services.UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-						Main.Services.UIS.ModalEnabled = true
-						Main.Vars.Camera.CameraType = Enum.CameraType.Scriptable
-					end
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					if not Main.Vars.stop and not Main.Vars.stopforce then
+						dragging = true
+						mousePos = input.Position
+						framePos = Frame.Position
 
-					input.Changed:Connect(function()
-						if input.UserInputState == Enum.UserInputState.End then
-							dragging = false
-							if Main.Services.UIS.TouchEnabled then
-								Main.Services.UIS.MouseBehavior = Enum.MouseBehavior.Default
-								Main.Services.UIS.ModalEnabled = false
-								Main.Vars.Camera.CameraType = Enum.CameraType.Custom
-							end
+						-- Handle mobile-specific features
+						if UIS.TouchEnabled then
+							UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+							UIS.ModalEnabled = true
+							Camera.CameraType = Enum.CameraType.Scriptable
 						end
-					end)
+
+						input.Changed:Connect(function()
+							if input.UserInputState == Enum.UserInputState.End then
+								dragging = false
+								if UIS.TouchEnabled then
+									UIS.MouseBehavior = Enum.MouseBehavior.Default
+									UIS.ModalEnabled = false
+									Camera.CameraType = Enum.CameraType.Custom
+								end
+							end
+						end)
+					end
 				end
 			end)
 
@@ -84,14 +86,15 @@ Main = {
 				end
 			end)
 
-			Main.Services.UIS.InputChanged:Connect(function(input)
-				if (input == dragInput or input == touchInput) and dragging and Main.Vars.stop ~= true and Main.Vars.stopforce ~= true then
-					_update(input)
+			UIS.InputChanged:Connect(function(input)
+				if input == dragInput and dragging and not Main.Vars.stop and not Main.Vars.stopforce then
+					update(input)
 				end
 			end)
 		end,
 
-		NewObj = function (className, properties)
+		-- Creates a new object and applies the given properties.
+		NewObj = function(className, properties)
 			local instance = Instance.new(className)
 			for prop, value in pairs(properties) do
 				instance[prop] = value
@@ -99,17 +102,15 @@ Main = {
 			return instance
 		end,
 
+		-- Determines the device type (mobile or desktop) and adjusts dynamic UI size accordingly.
 		CheckDevice = function()
-			if Main.Services.UIS.TouchEnabled then
-				Main.Vars.DynamicSize = UDim2.new(0, 370, 0, 220)
-				return true
-			else
-				Main.Vars.DynamicSize = UDim2.new(0, 470, 0, 320)
-				return false
-			end
+			local UIS = Main.Services.UIS
+			Main.Vars.DynamicSize = UIS.TouchEnabled and UDim2.new(0, 370, 0, 220) or UDim2.new(0, 470, 0, 320)
+			return UIS.TouchEnabled
 		end,
 
-		Cursor = function (frame, rbxassetid)
+		-- Creates a custom cursor and updates its position dynamically.
+		Cursor = function(frame, rbxassetid)
 			if not frame or not rbxassetid then
 				warn("Invalid parameters. Please provide a valid frame and rbxassetid.")
 				return
@@ -118,46 +119,44 @@ Main = {
 			local customCursor = Instance.new("ImageLabel")
 			customCursor.Name = "CustomCursor"
 			customCursor.Size = UDim2.new(0, 20, 0, 20)
-			customCursor.Position = UDim2.new(0, 5, 0, 0)
 			customCursor.BackgroundTransparency = 1
 			customCursor.Image = "rbxassetid://" .. rbxassetid
 			customCursor.Parent = frame
 
-			local function onRenderStep()
-				local mouse = game.Players.LocalPlayer:GetMouse()
-				local mouseX = mouse.X
-				local mouseY = mouse.Y
-				local framePosition = frame.AbsolutePosition
-				local frameSize = frame.AbsoluteSize
+			local UIS, runService = Main.Services.UIS, Main.Services.runService
+
+			runService.RenderStepped:Connect(function()
+				local mouse = Main.Vars.localPlayer:GetMouse()
+				local mouseX, mouseY = mouse.X, mouse.Y
+				local framePosition, frameSize = frame.AbsolutePosition, frame.AbsoluteSize
 
 				if mouseX >= framePosition.X and mouseX <= framePosition.X + frameSize.X and
 					mouseY >= framePosition.Y and mouseY <= framePosition.Y + frameSize.Y then
-					customCursor.Position = UDim2.new(0, mouseX - framePosition.X - (customCursor.Size.X.Offset / 2) + 5, 0, mouseY - framePosition.Y - (customCursor.Size.Y.Offset / 2) + 5)
+					customCursor.Position = UDim2.new(0, mouseX - framePosition.X - 10, 0, mouseY - framePosition.Y - 10)
 					customCursor.Visible = true
-					Main.Services.UIS.MouseIconEnabled = false
+					UIS.MouseIconEnabled = false
 				else
 					customCursor.Visible = false
-					Main.Services.UIS.MouseIconEnabled = true
+					UIS.MouseIconEnabled = true
 				end
-			end
-			Main.Services.runService.RenderStepped:Connect(onRenderStep)
-		end	
+			end)
+		end
 	}
 }
 
 Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
 Main.Utilities.CheckDevice()
 
-_Tone = {}
-_Notifications = {} 
+Tone = {}
 
-function _Tone:Window(options)
+function Tone:Window(options)
 	options = Main.Utilities.Settings({
-		Title = "Tone Hub Baseplate",
+		Title = "_Tone Hub Baseplate",
 		Discord = "Not Set",
 		Youtube = "Not Set",
 	}, options or {})
-	local Tone = {
+
+	local _Tone = {
 		CurrentTab = nil,
 	}
 
@@ -165,16 +164,16 @@ function _Tone:Window(options)
 	do
 		-- Rendering
 		do
-			Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
+			_Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
 				Parent = Main.Services.runService:IsStudio() and Main.Vars.localPlayer:WaitForChild("PlayerGui") or Main.Services.coreGui,
 				IgnoreGuiInset = true,
 				ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
-				Name = "Tone - By Zephy",
+				Name = "_Tone - By Zephy",
 				ResetOnSpawn = false
 			})
 
-			Tone.NotificationsFrame = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.Gui,
+			_Tone.NotificationsFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				AnchorPoint = Vector2.new(1, 0),
@@ -186,23 +185,23 @@ function _Tone:Window(options)
 				SelectionGroup = true
 			})
 
-			Tone.NotificationsListLayout = Main.Utilities.NewObj("UIListLayout", {
-				Parent = Tone.NotificationsFrame,
+			_Tone.NotificationsListLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = _Tone.NotificationsFrame,
 				Padding = UDim.new(0, 5),
 				VerticalAlignment = Enum.VerticalAlignment.Bottom,
 				SortOrder = Enum.SortOrder.LayoutOrder
 			})
 
-			Tone.NotificationsPadding = Main.Utilities.NewObj("UIPadding", {
-				Parent = Tone.NotificationsFrame,
+			_Tone.NotificationsPadding = Main.Utilities.NewObj("UIPadding", {
+				Parent = _Tone.NotificationsFrame,
 				PaddingTop = UDim.new(0, 5),
 				PaddingRight = UDim.new(0, 5),
 				PaddingLeft = UDim.new(0, 5),
 				PaddingBottom = UDim.new(0, 5)
 			})
 
-			Tone.MainFrame = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.Gui,
+			_Tone.MainFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 				AnchorPoint = Vector2.new(0.5, 0.5),
@@ -211,14 +210,28 @@ function _Tone:Window(options)
 				BorderColor3 = Color3.fromRGB(0, 0, 0),
 				Name = "Main"
 			})
+			
+			_Tone.TransitionFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.MainFrame,
+				Size = UDim2.new(1, 0, 0, 0),
+				Position = UDim2.new(0, 0, 0, 0),
+				AnchorPoint = Vector2.new(0, 0),
+				BackgroundColor3 = Color3.fromRGB(12, 12, 12),
+				ZIndex = 79420
+			})
 
-			Tone.MainCorner = Main.Utilities.NewObj("UICorner", {
-				Parent = Tone.MainFrame,
+			_Tone.TransitionCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = _Tone.TransitionFrame,
 				CornerRadius = UDim.new(0, 6)
 			})
 
-			Tone.ShadowFrame = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.MainFrame,
+			_Tone.MainCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = _Tone.MainFrame,
+				CornerRadius = UDim.new(0, 6)
+			})
+
+			_Tone.ShadowFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.MainFrame,
 				ZIndex = 0,
 				BorderSizePixel = 0,
 				Size = UDim2.new(1, 0, 1, 0),
@@ -226,8 +239,8 @@ function _Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			Tone.ShadowImage = Main.Utilities.NewObj("ImageLabel", {
-				Parent = Tone.ShadowFrame,
+			_Tone.ShadowImage = Main.Utilities.NewObj("ImageLabel", {
+				Parent = _Tone.ShadowFrame,
 				ZIndex = 0,
 				BorderSizePixel = 0,
 				SliceCenter = Rect.new(49, 49, 450, 450),
@@ -242,8 +255,8 @@ function _Tone:Window(options)
 				Position = UDim2.new(0.5, 0, 0.5, 0)
 			})
 
-			Tone.Divider = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.MainFrame,
+			_Tone.Divider = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(19, 19, 19),
 				Size = UDim2.new(0, 1, 1, 0),
@@ -252,8 +265,8 @@ function _Tone:Window(options)
 				Name = "Divider"
 			})
 
-			Tone.NavigationFrame = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.MainFrame,
+			_Tone.NavigationFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				Size = UDim2.new(0, 120, 1, 0),
@@ -262,8 +275,8 @@ function _Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			Tone.TitleLabel = Main.Utilities.NewObj("TextLabel", {
-				Parent = Tone.NavigationFrame,
+			_Tone.TitleLabel = Main.Utilities.NewObj("TextLabel", {
+				Parent = _Tone.NavigationFrame,
 				TextWrapped = true,
 				BorderSizePixel = 0,
 				TextYAlignment = Enum.TextYAlignment.Top,
@@ -280,8 +293,8 @@ function _Tone:Window(options)
 				Position = UDim2.new(0.5, 0, 0, 15)
 			})
 
-			Tone.TabButtons = Main.Utilities.NewObj("ScrollingFrame", {
-				Parent = Tone.NavigationFrame,
+			_Tone.TabButtons = Main.Utilities.NewObj("ScrollingFrame", {
+				Parent = _Tone.NavigationFrame,
 				Active = true,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -294,14 +307,14 @@ function _Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			Tone.TabButtonsLayout = Main.Utilities.NewObj("UIListLayout", {
-				Parent = Tone.TabButtons,
+			_Tone.TabButtonsLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = _Tone.TabButtons,
 				Padding = UDim.new(0, 5),
 				SortOrder = Enum.SortOrder.LayoutOrder
 			})
 
-			Tone.TabArea = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.MainFrame,
+			_Tone.TabArea = Main.Utilities.NewObj("Frame", {
+				Parent = _Tone.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				Size = UDim2.new(1, -120, 1, 0),
@@ -314,7 +327,7 @@ function _Tone:Window(options)
 		-- Tab/Logic
 		do
 			-- Tab
-			function Tone:Tab(options)
+			function _Tone:Tab(options)
 				options = Main.Utilities.Settings({
 					Title = "Preview Tab"
 				}, options or {})
@@ -326,7 +339,7 @@ function _Tone:Window(options)
 				-- Rendering
 				do
 					Tab.CurrentTabLabel = Main.Utilities.NewObj("TextLabel", {
-						Parent = Tone.TabArea,
+						Parent = _Tone.TabArea,
 						BorderSizePixel = 0,
 						Visible = false,
 						TextXAlignment = Enum.TextXAlignment.Left,
@@ -343,7 +356,7 @@ function _Tone:Window(options)
 					})
 
 					Tab.Tab = Main.Utilities.NewObj("ScrollingFrame", {
-						Parent = Tone.TabArea,
+						Parent = _Tone.TabArea,
 						Visible = false,
 						BorderSizePixel = 0,
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -365,7 +378,7 @@ function _Tone:Window(options)
 					})
 
 					Tab.TabButton = Main.Utilities.NewObj("TextLabel", {
-						Parent = Tone.TabButtons,
+						Parent = _Tone.TabButtons,
 						BorderSizePixel = 0,
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						TextSize = 13,
@@ -400,61 +413,71 @@ function _Tone:Window(options)
 				end
 				-- Logic
 				do
-					-- Methods
-					do
-						function Tab:__1J7()
-							if Tab.Active then
-								Tab.Active = false
-								Tab.Hover = false
-								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Click)
-								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.4, Main.TweenTypes.Click)
-								Tab.Tab.Visible = false
-								Tab.CurrentTabLabel.Visible = false
-							end
-						end
-
-						function Tab:_JSWT()
-							if not Tab.Active then
-								if Tone.CurrentTab ~= nil then
-									Tone.CurrentTab:__1J7()
+					Tab.Logic = {
+						Methods = {
+							DeactivateTab = function(self)
+								if Tab.Active then
+									Tab.Active = false
+									Tab.Hover = false
+									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Click)
+									Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.4, Main.TweenTypes.Click)
+									Tab.Tab.Visible = false
+									Tab.CurrentTabLabel.Visible = false
 								end
-								Tab.Active = true
-								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(255, 255, 255)}, 0.8, Main.TweenTypes.Click)
-								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0,7, 1, 0)}, 0.8, Main.TweenTypes.Click)
-								Tab.Tab.Visible = true
-								Tab.CurrentTabLabel.Visible = true
-								Tone.CurrentTab = Tab
+							end,
+
+							ActivateTab = function(self)
+								if not Tab.Active then
+									if _Tone.CurrentTab then
+										_Tone.CurrentTab:DeactivateTab()
+									end
+									Tab.Active = true
+									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.8, Main.TweenTypes.Click)
+									Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 7, 1, 0)}, 0.8, Main.TweenTypes.Click)
+									Tab.Tab.Visible = true
+									Tab.CurrentTabLabel.Visible = true
+									_Tone.CurrentTab = Tab
+								end
+							end
+						},
+
+						Events = {
+							MouseEnter = function()
+								Tab.Hover = true
+								if not Tab.Active then
+									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.8, Main.TweenTypes.Hover)
+									Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 7, 0.3, 0)}, 0.8, Main.TweenTypes.Hover)
+								end
+							end,
+
+							MouseLeave = function()
+								Tab.Hover = false
+								if not Tab.Active then
+									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Hover)
+									Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.1, Main.TweenTypes.Hover)
+								end
+							end,
+
+							InputBegan = function(input)
+								if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Tab.Hover then
+									Tab.Logic.Methods:ActivateTab()
+								end
+							end
+						},
+
+						Setup = function()
+							Tab.TabButton.MouseEnter:Connect(Tab.Logic.Events.MouseEnter)
+							Tab.TabButton.MouseLeave:Connect(Tab.Logic.Events.MouseLeave)
+							Main.Services.UIS.InputBegan:Connect(Tab.Logic.Events.InputBegan)
+
+							if not _Tone.CurrentTab then
+								Tab.Logic.Methods:ActivateTab()
 							end
 						end
-					end
-					-- Main
-					do
-						Tab.TabButton.MouseEnter:Connect(function()
-							Tab.Hover = true
-							if not Tab.Active then
-								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(200, 200, 200)}, 0.8, Main.TweenTypes.Hover)
-								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 7, 0.3, 0)}, 0.8, Main.TweenTypes.Hover)
-							end
-						end)
+					}
 
-						Tab.TabButton.MouseLeave:Connect(function()
-							Tab.Hover = false
-							if not Tab.Active then
-								Main.Utilities.Tween(Tab.TabButton, {TextColor3 =Color3.fromRGB(101, 101, 101)}, 0.8, Main.TweenTypes.Hover)
-								Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 0, 0, 0)}, 0.1, Main.TweenTypes.Hover)
-							end
-						end)
+					Tab.Logic.Setup()
 
-						Main.Services.UIS.InputBegan:Connect(function(input)
-							if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Tab.Hover then
-								Tab:_JSWT()	
-							end
-						end)
-
-						if Tone.CurrentTab == nil then
-							Tab:_JSWT()
-						end
-					end
 					-- Tab Elements
 					do
 						function Tab:Label(options)
@@ -483,35 +506,41 @@ function _Tone:Window(options)
 									Text = options.Text,
 								})
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Label:SetText(text)
-										options.Text = text
-										Label:_update()
-									end
 
-									function Label:_update()
+							Label.Logic = {
+								Methods = {
+									SetText = function(text)
+										options.Text = text
+										self.Update()
+									end,
+
+									Update = function()
 										Label.MainText.Text = options.Text
-										Label.MainText.Size = UDim2.new(1, 0, 0, math.huge)
-										Label.MainText.Size = UDim2.new(1, 0, 0, Label.MainText.TextBounds.Y)
+										Label.MainText.Size = UDim2.new(1, 0, 0, math.huge) -- Temporarily set to huge for text height calculation
+										Label.MainText.Size = UDim2.new(1, 0, 0, Label.MainText.TextBounds.Y) -- Set to actual text height
 										Main.Utilities.Tween(Label.MainText, {Size = UDim2.new(1, 0, 0, Label.MainText.TextBounds.Y + 20)}, 0.2, Main.TweenTypes.Click)
 									end
+								},
 
-									Label:_update()
-								end
-								-- Main
-								do
-									Label.MainText.MouseEnter:Connect(function()
+								Events = {
+									MouseEnter = function()
 										Main.Utilities.Tween(Label.MainText, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
-									end)
+									end,
 
-									Label.MainText.MouseLeave:Connect(function()
+									MouseLeave = function()
 										Main.Utilities.Tween(Label.MainText, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
-									end)
+									end,
+								},
+
+								Setup = function()
+									Label.MainText.MouseEnter:Connect(Label.Logic.Events.MouseEnter)
+									Label.MainText.MouseLeave:Connect(Label.Logic.Events.MouseLeave)
 								end
-							end
+							}
+
+							Label.Logic.Methods.Update()
+							Label.Logic.Setup()
+							
 							return Label
 						end
 
@@ -541,35 +570,42 @@ function _Tone:Window(options)
 									Text = options.Text,
 								})
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Warning:SetText(text)
-										options.Text = text
-										Warning:_update()
-									end
 
-									function Warning:_update()
+							Warning.Logic = {
+								Methods = {
+									SetText = function(self, text)
+										options.Text = text
+										self:Update()
+									end,
+
+									Update = function(self)
 										Warning.MainText.Text = options.Text
-										Warning.MainText.Size = UDim2.new(1, 0, 0, math.huge)
-										Warning.MainText.Size = UDim2.new(1, 0, 0, Warning.MainText.TextBounds.Y)
+										Warning.MainText.Size = UDim2.new(1, 0, 0, math.huge) -- Temporarily set to huge for text height calculation
+										Warning.MainText.Size = UDim2.new(1, 0, 0, Warning.MainText.TextBounds.Y) -- Set to actual text height
 										Main.Utilities.Tween(Warning.MainText, {Size = UDim2.new(1, 0, 0, Warning.MainText.TextBounds.Y + 20)}, 0.2, Main.TweenTypes.Click)
 									end
+								},
 
-									Warning:_update()
-								end
-								-- Main
-								do
-									Warning.MainText.MouseEnter:Connect(function()
+								Events = {
+									MouseEnter = function()
 										Main.Utilities.Tween(Warning.MainText, {TextColor3 = Color3.fromRGB(255, 221, 67)}, 0.4, Main.TweenTypes.Hover)
-									end)
+									end,
 
-									Warning.MainText.MouseLeave:Connect(function()
+									MouseLeave = function()
 										Main.Utilities.Tween(Warning.MainText, {TextColor3 = Color3.fromRGB(195, 169, 51)}, 0.4, Main.TweenTypes.Hover)
-									end)
+									end
+								},
+
+								Setup = function()
+									Warning.MainText.MouseEnter:Connect(Warning.Logic.Events.MouseEnter)
+									Warning.MainText.MouseLeave:Connect(Warning.Logic.Events.MouseLeave)
+									
 								end
-							end
+							}
+							
+							Warning.Logic.Methods:Update()
+							Warning.Logic.Setup()
+
 							return Warning
 						end
 
@@ -638,22 +674,24 @@ function _Tone:Window(options)
 									PaddingLeft = UDim.new(0, 1)
 								})
 							end
-							-- Logic
-							do
-								Bind.BindLabel.MouseEnter:Connect(function()
-									Bind.Hover = true
-									Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
-								end)
+							Bind.Logic = {
+								Methods = {
+									SetupHoverEvents = function()
+										Bind.BindLabel.MouseEnter:Connect(function()
+											Bind.Hover = true
+											Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+										end)
 
-								Bind.BindLabel.MouseLeave:Connect(function()
-									Bind.Hover = false
-									Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
-								end)
+										Bind.BindLabel.MouseLeave:Connect(function()
+											Bind.Hover = false
+											Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end)
+									end,
 
-								Main.Services.UIS.InputBegan:Connect(function(input)
-									if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Bind.Hover then
-										Bind.BindLabel.Text = "Listening..."	
+									StartListening = function()
+										Bind.BindLabel.Text = "Listening..."
 										Main.Utilities.Tween(Bind.BindLabel, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
+
 										local inputConnection
 										inputConnection = Main.Services.UIS.InputBegan:Connect(function(input)
 											if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -669,12 +707,28 @@ function _Tone:Window(options)
 											end
 										end)
 									end
+								},
 
-									if (input.KeyCode == Enum.KeyCode[Bind.CurrentBind]) then
-										options.Callback(Bind.CurrentBind)
+								Events = {
+									InputBegan = function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Bind.Hover then
+											Bind.Logic.Methods.StartListening()
+										end
+
+										if (input.KeyCode == Enum.KeyCode[Bind.CurrentBind]) then
+											options.Callback(Bind.CurrentBind)
+										end
 									end
-								end)
-							end
+								},
+
+								Setup = function()
+									Bind.Logic.Methods.SetupHoverEvents()
+									Main.Services.UIS.InputBegan:Connect(Bind.Logic.Events.InputBegan)
+								end
+							}
+
+							Bind.Logic.Setup()
+
 							return Bind
 						end
 
@@ -734,44 +788,42 @@ function _Tone:Window(options)
 									Position = UDim2.new(0, -2, 0, 0)
 								})
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Button:SetText(text)
+							Button.Logic = {
+								Methods = {
+									SetText = function(self, text)
 										Button.Button.Title = text
 										options.name = text
-									end
+									end,
 
-									function Button:SetCallback(fn)
+									SetCallback = function(self, fn)
 										options.callback = fn
 									end
-								end
-								-- Main
-								do
-									Button.Button.InputBegan:Connect(function()
+								},
+
+								Events = {
+									InputBegan = function()
 										Button.Hover = true
 										if not Button.MouseDown then
 											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Button.Button.InputEnded:Connect(function()
+									InputEnded = function()
 										Button.Hover = false
 										if not Button.MouseDown then
 											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputBegan:Connect(function(input)
+									MouseInputBegan = function(input)
 										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Button.Hover then
 											Button.MouseDown = true
 											Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
 											options.Callback()
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputEnded:Connect(function(input)
+									MouseInputEnded = function(input)
 										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 											Button.MouseDown = false
 											if Button.Hover then
@@ -780,9 +832,19 @@ function _Tone:Window(options)
 												Main.Utilities.Tween(Button.Button, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 											end
 										end
-									end)
+									end
+								},
+
+								Setup = function()
+									Button.Button.InputBegan:Connect(Button.Logic.Events.InputBegan)
+									Button.Button.InputEnded:Connect(Button.Logic.Events.InputEnded)
+									Main.Services.UIS.InputBegan:Connect(Button.Logic.Events.MouseInputBegan)
+									Main.Services.UIS.InputEnded:Connect(Button.Logic.Events.MouseInputEnded)
 								end
-							end
+							}
+
+							Button.Logic.Setup()
+
 							return Button	
 						end
 
@@ -849,11 +911,9 @@ function _Tone:Window(options)
 									CornerRadius = UDim.new(0, 4)
 								})
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Toggle:ToggleState(Bool)
+							Toggle.Logic = {
+								Methods = {
+									ToggleState = function(self, Bool)
 										if Bool == nil then
 											Toggle.State = not Toggle.State
 										else
@@ -867,50 +927,61 @@ function _Tone:Window(options)
 											Main.Utilities.Tween(Toggle.Check, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.4, Main.TweenTypes.Click)
 											Main.Utilities.Tween(Toggle.CheckIcon, {ImageTransparency = 1}, 0.4, Main.TweenTypes.Click)
 										end
+
 										options.Callback(Toggle.State)	
+									end,
+
+									InitializeState = function(self)
+										self:ToggleState(options.State)
 									end
+								},
 
-									Toggle:ToggleState(options.State)
-								end
-								-- Main
-								do
-									Toggle.Toggle.InputBegan:Connect(function()
+								Events = {
+									InputBegan = function()
 										Toggle.Hover = true
-
-										if not Toggle.MouseDown then
+										if not Toggle.MouseDown and Toggle.State then
 											Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Toggle.Toggle.InputEnded:Connect(function()
+									InputEnded = function()
 										Toggle.Hover = false
-
-										if not Toggle.MouseDown then
+										if not Toggle.MouseDown and Toggle.State then
 											Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputBegan:Connect(function(input)
+									MouseInputBegan = function(input)
 										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Toggle.Hover then
 											Toggle.MouseDown = true
-											Toggle:ToggleState()
+											Toggle.Logic.Methods.ToggleState()
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputEnded:Connect(function(input)
+									MouseInputEnded = function(input)
 										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 											Toggle.MouseDown = false
-											if Toggle.Hover then
+											if Toggle.Hover and Toggle.State then
 												Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
 											else
 												Main.Utilities.Tween(Toggle.Toggle, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 											end
-										else
-											return
 										end
-									end)
+									end
+								},
+
+								Setup = function()
+									Toggle.Toggle.InputBegan:Connect(Toggle.Logic.Events.InputBegan)
+									Toggle.Toggle.InputEnded:Connect(Toggle.Logic.Events.InputEnded)
+									Main.Services.UIS.InputBegan:Connect(Toggle.Logic.Events.MouseInputBegan)
+									Main.Services.UIS.InputEnded:Connect(Toggle.Logic.Events.MouseInputEnded)
+
+									Toggle.Logic.Methods:InitializeState()
 								end
-							end
+							}
+
+							Toggle.Logic.Setup()
+
 							return Toggle
 						end
 
@@ -1012,11 +1083,10 @@ function _Tone:Window(options)
 									CornerRadius = UDim.new(0, 12)
 								})
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Slider:SetValue(v)
+							
+							Slider.Logic = {
+								Methods = {
+									SetValue = function(self, v)
 										if v == nil then
 											local percentage = math.clamp((Main.Vars.Mouse.X - Slider.Slider.AbsolutePosition.X) / Slider.Slider.AbsoluteSize.X, 0, 1)
 											local value = math.floor(((options.Max - options.Min) * percentage) + options.Min)
@@ -1031,34 +1101,34 @@ function _Tone:Window(options)
 											Main.Utilities.Tween(Slider.Drag, {Size = UDim2.fromScale(percentage, 1)}, 0.4, Main.TweenTypes.Drag)
 										end
 
-										options.Callback(Slider:GetValue())
-									end
+										options.Callback(Slider.Logic.Methods:GetValue())
+									end,
 
-									function Slider:GetValue()
+									GetValue = function(self)
 										return tonumber(Slider.Value.Text)
+									end,
+
+									Initialize = function(self)
+										self:SetValue(options.Default)
 									end
+								},
 
-									Slider:SetValue(options.Default)
-								end
-								-- Main
-								do
-									Slider.Slider.MouseEnter:Connect(function()
+								Events = {
+									MouseEnter = function()
 										Slider.Hover = true
-
 										if not Slider.MouseDown then
 											Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Slider.Slider.MouseLeave:Connect(function()
+									MouseLeave = function()
 										Slider.Hover = false
-
 										if not Slider.MouseDown then
 											Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputBegan:Connect(function(input)
+									InputBegan = function(input)
 										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Slider.Hover then
 											Main.Vars.stop = true
 											Slider.MouseDown = true
@@ -1066,13 +1136,13 @@ function _Tone:Window(options)
 
 											if not Slider.Connection then
 												Slider.Connection = Main.Services.runService.RenderStepped:Connect(function()
-													Slider:SetValue()
+													Slider.Logic.Methods:SetValue()
 												end)
 											end
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputEnded:Connect(function(input)
+									InputEnded = function(input)
 										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 											Main.Vars.stop = false
 											Slider.MouseDown = false
@@ -1083,12 +1153,26 @@ function _Tone:Window(options)
 												Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 											end
 
-											if Slider.Connection then Slider.Connection:Disconnect() end
+											if Slider.Connection then 
+												Slider.Connection:Disconnect() 
+											end
 											Slider.Connection = nil
 										end
-									end)
+									end
+								},
+
+								Setup = function()
+									Slider.Slider.MouseEnter:Connect(Slider.Logic.Events.MouseEnter)
+									Slider.Slider.MouseLeave:Connect(Slider.Logic.Events.MouseLeave)
+									Main.Services.UIS.InputBegan:Connect(Slider.Logic.Events.InputBegan)
+									Main.Services.UIS.InputEnded:Connect(Slider.Logic.Events.InputEnded)
+
+									Slider.Logic.Methods:Initialize()
 								end
-							end
+							}
+
+							Slider.Logic.Setup()
+
 							return Slider
 						end	
 
@@ -1192,11 +1276,10 @@ function _Tone:Window(options)
 								})
 
 							end
-							-- Logic
-							do
-								-- Methods
-								do
-									function Dropdown:Add(Id, Title, Callback)
+							
+							Dropdown.Logic = {
+								Methods = {
+									Add = function(Id, Title, Callback, self)
 										Callback = Callback or function(Id, Title) print(Id, Title) end
 
 										local Item = {
@@ -1215,126 +1298,118 @@ function _Tone:Window(options)
 										}
 
 										-- Rendering
-										do
-											Dropdown.Items[Id].instance.Item = Main.Utilities.NewObj("TextLabel", {
-												Parent = Dropdown.DropdownItems,
-												BorderSizePixel = 0,
-												TextXAlignment = Enum.TextXAlignment.Left,
-												BackgroundColor3 = Color3.fromRGB(19, 19, 19),
-												TextSize = 10,
-												FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-												TextColor3 = Color3.fromRGB(255, 255, 255),
-												Size = UDim2.new(1, 0, 0, 20),
-												BorderColor3 = Color3.fromRGB(0, 0, 0),
-												Text = "Item",
-												Name = "Item",
-											})
+										Dropdown.Items[Id].instance.Item = Main.Utilities.NewObj("TextLabel", {
+											Parent = Dropdown.DropdownItems,
+											BorderSizePixel = 0,
+											TextXAlignment = Enum.TextXAlignment.Left,
+											BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+											TextSize = 10,
+											FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+											TextColor3 = Color3.fromRGB(255, 255, 255),
+											Size = UDim2.new(1, 0, 0, 20),
+											BorderColor3 = Color3.fromRGB(0, 0, 0),
+											Text = Title,
+											Name = "Item",
+										})
 
-											Dropdown.Items[Id].instance.ItemCorner = Main.Utilities.NewObj("UICorner", {
-												Parent = Dropdown.Items[Id].instance.Item,
-												CornerRadius = UDim.new(0, 4),
-											})
+										Dropdown.Items[Id].instance.ItemCorner = Main.Utilities.NewObj("UICorner", {
+											Parent = Dropdown.Items[Id].instance.Item,
+											CornerRadius = UDim.new(0, 4),
+										})
 
-											Dropdown.Items[Id].instance.ItemPadding = Main.Utilities.NewObj("UIPadding", {
-												Parent = Dropdown.Items[Id].instance.Item,
-												PaddingLeft = UDim.new(0, 5),
-											})
-										end
+										Dropdown.Items[Id].instance.ItemPadding = Main.Utilities.NewObj("UIPadding", {
+											Parent = Dropdown.Items[Id].instance.Item,
+											PaddingLeft = UDim.new(0, 5),
+										})
 
 										-- Logic
-										do
-											-- Methods
-											do
-												function setHoverAppearance()
-													if not Item.MouseDown then
-														if options.Selectmode then
-															if Item.Selected then
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-															else
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-															end
-														else
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
-														end
-													end
-												end
-
-												function resetAppearance()
-													if Item.MouseDown then
-														return
-													end
-
-													if options.Selectmode then
-														if Item.Selected then
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Hover)
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-														else
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-														end
+										local function setHoverAppearance()
+											if not Item.MouseDown then
+												if options.Selectmode then
+													if Item.Selected then
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
 													else
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
 													end
+												else
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
 												end
-											end
-											-- Main
-											do
-												Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
-													Item.Hover = true
-													Dropdown.HoveringItem = true
-													setHoverAppearance()
-												end)
-
-												Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
-													Item.Hover = false
-													Dropdown.HoveringItem = false
-													resetAppearance()
-												end)
-
-												Main.Services.UIS.InputBegan:Connect(function(input)
-													if Dropdown.Items[Id] == nil then return end
-
-													if (input.UserInputType == Enum.UserInputType.MouseButton1 and Item.Hover) or (input.UserInputType == Enum.UserInputType.Touch and Item.Hover) then
-														Item.MouseDown = true
-
-														if options.Selectmode then
-															Item.Selected = not Item.Selected
-															Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-															if Item.Hover then
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Click)
-															else
-																Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
-															end
-														else
-															for i, v in pairs(Dropdown.Items) do
-																if v.instance then
-																	v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
-																end
-															end
-															Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
-															Dropdown.SelectedItems = { [Id] = Title }
-															Dropdown:Toggle()
-														end
-														Callback(Id, Title)
-													end
-												end)
-
-												Main.Services.UIS.InputEnded:Connect(function(input)
-													if Dropdown.Items[Id] == nil then return end
-
-													if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-														Item.MouseDown = false
-														resetAppearance()
-													end
-												end)
 											end
 										end
-									end
 
-									function Dropdown:GetSelectedItems()
+										local function resetAppearance()
+											if Item.MouseDown then
+												return
+											end
+
+											if options.Selectmode then
+												if Item.Selected then
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Hover)
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+												else
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+												end
+											else
+												Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+											end
+										end
+
+										-- Main Logic
+										Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
+											Item.Hover = true
+											Dropdown.HoveringItem = true
+											setHoverAppearance()
+										end)
+
+										Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
+											Item.Hover = false
+											Dropdown.HoveringItem = false
+											resetAppearance()
+										end)
+
+										Main.Services.UIS.InputBegan:Connect(function(input)
+											if Dropdown.Items[Id] == nil then return end
+
+											if (input.UserInputType == Enum.UserInputType.MouseButton1 and Item.Hover) or (input.UserInputType == Enum.UserInputType.Touch and Item.Hover) then
+												Item.MouseDown = true
+
+												if options.Selectmode then
+													Item.Selected = not Item.Selected
+													Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+													if Item.Hover then
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Click)
+													else
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
+													end
+												else
+													for i, v in pairs(Dropdown.Items) do
+														if v.instance then
+															v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
+														end
+													end
+													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
+													Dropdown.SelectedItems = { [Id] = Title }
+													Dropdown:Toggle()
+												end
+												Callback(Id, Title)
+											end
+										end)
+
+										Main.Services.UIS.InputEnded:Connect(function(input)
+											if Dropdown.Items[Id] == nil then return end
+
+											if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+												Item.MouseDown = false
+												resetAppearance()
+											end
+										end)
+									end,
+
+									GetSelectedItems = function(self)
 										local selectedText = ""
 
 										for id, title in pairs(Dropdown.SelectedItems) do
@@ -1348,9 +1423,9 @@ function _Tone:Window(options)
 										else
 											return selectedText:sub(1, -3)
 										end
-									end
+									end,
 
-									function Dropdown:Remove(id)
+									Remove = function(self, id)
 										if Dropdown.Items[id] ~= nil then
 											if Dropdown.Items[id].instance ~= nil then
 												for i, v in pairs(Dropdown.Items[id].instance) do
@@ -1359,15 +1434,15 @@ function _Tone:Window(options)
 											end
 											Dropdown.Items[id] = nil
 										end
-									end
+									end,
 
-									function Dropdown:Clear()
+									Clear = function(self)
 										for i, v in pairs(Dropdown.Items) do
 											Dropdown:Remove(i)
 										end
-									end
+									end,
 
-									function Dropdown:Toggle()
+									Toggle = function(self)
 										Dropdown.Open = not Dropdown.Open
 
 										if not Dropdown.Open and not Dropdown.HoveringItem then
@@ -1386,32 +1461,32 @@ function _Tone:Window(options)
 											Main.Utilities.Tween(Dropdown.Dropdown, {Size = UDim2.new(1, 0, 0, 7 + (count * 20) + 1)}, 0.4, Main.TweenTypes.Click)
 										end
 									end
-								end
-								-- Main
-								do
-									Dropdown.Dropdown.MouseEnter:Connect(function()
+								},
+
+								Events = {
+									MouseEnter = function()
 										Dropdown.Hover = true
 										Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
-									end)
+									end,
 
-									Dropdown.Dropdown.MouseLeave:Connect(function()
+									MouseLeave = function()
 										Dropdown.Hover = false
 										if not Dropdown.MouseDown then
 											Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputBegan:Connect(function(input)
+									InputBegan = function(input)
 										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Dropdown.Hover then
 											Dropdown.MouseDown = true
-											Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(255, 255 ,255)}, 0.4, Main.TweenTypes.Click)
+											Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Click)
 											if not Dropdown.HoveringItem then
-												Dropdown:Toggle()
+												Dropdown.Logic.Methods.Toggle()
 											end
 										end
-									end)
+									end,
 
-									Main.Services.UIS.InputEnded:Connect(function(input)
+									InputEnded = function(input)
 										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 											Dropdown.MouseDown = false
 											if Dropdown.Hover then
@@ -1420,9 +1495,19 @@ function _Tone:Window(options)
 												Main.Utilities.Tween(Dropdown.Dropdown, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Click)
 											end
 										end
-									end)	
+									end
+								},
+
+								Setup = function(self)
+									Dropdown.Dropdown.MouseEnter:Connect(Dropdown.Logic.Events.MouseEnter)
+									Dropdown.Dropdown.MouseLeave:Connect(Dropdown.Logic.Events.MouseLeave)
+									Main.Services.UIS.InputBegan:Connect(Dropdown.Logic.Events.InputBegan)
+									Main.Services.UIS.InputEnded:Connect(Dropdown.Logic.Events.InputEnded)
 								end
-							end
+							}
+
+							Dropdown.Logic.Setup()
+
 							return Dropdown
 						end	
 					end
@@ -1445,7 +1530,7 @@ function _Tone:Window(options)
 		-- Rendering
 		do
 			Actions.Frame = Main.Utilities.NewObj("Frame", {
-				Parent = Tone.Gui,
+				Parent = _Tone.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 				AnchorPoint = Vector2.new(0.5, 0),
@@ -1527,112 +1612,120 @@ function _Tone:Window(options)
 				Position = UDim2.new(0.5, -13, 0.5, 0)
 			})
 		end
-		-- Logic
-		do
-			local ActionHandlers = {}
+		Actions.Logic = {
+			Methods = {
+				SetHoverState = function(icon, hoverStateVar)
+					icon.MouseEnter:Connect(function()
+						Actions[hoverStateVar] = true
+					end)
 
-			ActionHandlers.SetHoverState = function(icon, hoverStateVar)
-				icon.MouseEnter:Connect(function()
-					Actions[hoverStateVar] = true
-				end)
+					icon.MouseLeave:Connect(function()
+						Actions[hoverStateVar] = false
+					end)
+				end,
 
-				icon.MouseLeave:Connect(function()
-					Actions[hoverStateVar] = false
-				end)
-			end
+				CloseFrame = function()
+					if Actions.Open then
+						Actions.Close = true
+						Actions.Open = false
+						Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
+							for _, child in ipairs(_Tone.MainFrame:GetChildren()) do
+								if not (child:IsA("UICorner") or child:IsA("UIPadding") or child:IsA("UIListLayout")) then
+									if child.Name ~= "Shadow" then
+										child.Visible = false
+									end
+								end
+							end
 
-			ActionHandlers.CloseFrame = function()
-				Actions.Close = true
-				Actions.Open = false
-				for i, v in Tone.MainFrame:GetDescendants() do
-					if v:IsA("ImageLabel") then
-						Main.Utilities.Tween(v, {ImageTransparency = 1}, 1, Main.TweenTypes.Drag)
-						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
-					elseif v:IsA("TextLabel") then
-						Main.Utilities.Tween(v, {TextTransparency = 1}, 1, Main.TweenTypes.Drag)
-						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
-					elseif v:IsA("Frame") then
-						Main.Utilities.Tween(v, {BackgroundTransparency = 1}, 1, Main.TweenTypes.Drag)
+							_Tone.MainFrame.AnchorPoint = Vector2.new(0.5, 1)
+							_Tone.MainFrame.Position = UDim2.new(0.5, _Tone.MainFrame.Position.X.Offset, 0.5, _Tone.MainFrame.Position.Y.Offset + (_Tone.MainFrame.Size.Y.Offset / 2))
+							_Tone.TransitionFrame.AnchorPoint = Vector2.new(0, 1)
+							_Tone.TransitionFrame.Position = UDim2.new(0, 0, 1, 0)
+
+							task.wait(0.1)
+							
+							Main.Utilities.Tween(_Tone.MainFrame, {Size = UDim2.new(0, _Tone.MainFrame.Size.X.Offset, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+							
+							coroutine.wrap(function()
+								task.wait(0.51)
+								_Tone.ShadowImage.Visible = false
+							end)()
+
+							Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+						end))
 					end
-				end
-				Main.Utilities.Tween(Tone.MainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 2, Main.TweenTypes.Drag)
-			end
+				end,
 
-			ActionHandlers.OpenFrame = function()
-				Main.Utilities.Tween(Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 2, Main.TweenTypes.Drag, function()
-					for i, v in Tone.MainFrame:GetDescendants() do
-						if v:IsA("ImageLabel") and v.Name ~= "Shadow" then
-							Main.Utilities.Tween(v, {ImageTransparency = 0}, 1, Main.TweenTypes.Drag)
-							Main.Utilities.Tween(v, {BackgroundTransparency = 0}, 1, Main.TweenTypes.Drag)
-						elseif v:IsA("TextLabel") then
-							Main.Utilities.Tween(v, {TextTransparency = 0}, 1, Main.TweenTypes.Drag)
-						elseif v.Name == "Activated" then
-							Main.Utilities.Tween(v, {BackgroundTransparency = 0}, 1, Main.TweenTypes.Drag)
+				OpenFrame = function()
+					coroutine.wrap(function()
+						task.wait(0.29)
+						_Tone.ShadowImage.Visible = true
+						_Tone.ShadowFrame.Visible = true
+					end)()
+					Main.Utilities.Tween(_Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag, function()
+						if Actions.Close then
+							Actions.Close = false
+							Actions.Open = true
+							Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
+								Main.Utilities.Tween(_Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag)
+
+								for _, child in ipairs(_Tone.MainFrame:GetChildren()) do
+									if not (child:IsA("UICorner") or child:IsA("UIPadding") or child:IsA("UIListLayout")) then
+										child.Visible = true
+									end
+								end
+
+								task.wait(0.1)
+
+								_Tone.TransitionFrame.AnchorPoint = Vector2.new(0, 0)
+								_Tone.TransitionFrame.Position = UDim2.new(0, 0, 0, 0)
+								_Tone.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+								_Tone.MainFrame.Position = UDim2.new(0.5, _Tone.MainFrame.Position.X.Offset, 0.5, _Tone.MainFrame.Position.Y.Offset - (_Tone.MainFrame.Size.Y.Offset / 2))
+
+								Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+							end))
+						end
+					end)
+				end,
+
+				HandleInput = function(input)
+					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+						if Actions.ExitHover then
+							Actions.Logic.Methods.CloseFrame()
+						elseif Actions.OpenHover then
+							Actions.Logic.Methods.OpenFrame()
+						elseif Actions.DiscordHover then
+							setclipboard(options.Discord)
+						elseif Actions.YoutubeHover then
+							setclipboard(options.Youtube)
+							print(options.Youtube)
 						end
 					end
-				end)
-				Actions.Close = false
-				Actions.Open = true
-			end
-
-			ActionHandlers.SetHoverState(Actions.ExitIcon, "ExitHover")
-			ActionHandlers.SetHoverState(Actions.OpenIcon, "OpenHover")
-
-			Main.Services.UIS.InputBegan:Connect(function(input)
-				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-					if Actions.Open and Actions.ExitHover then
-						ActionHandlers.CloseFrame()
-					elseif Actions.OpenHover and Actions.Close then
-						ActionHandlers.OpenFrame()
-					end
 				end
-			end)
+			},
 
-			local SocialsHandler = {}
+			Setup = function()
+				Actions.Logic.Methods.SetHoverState(Actions.ExitIcon, "ExitHover")
+				Actions.Logic.Methods.SetHoverState(Actions.OpenIcon, "OpenHover")
+				Actions.Logic.Methods.SetHoverState(Actions.DiscordIcon, "DiscordHover")
+				Actions.Logic.Methods.SetHoverState(Actions.YoutubeIcon, "YoutubeHover")
 
-			SocialsHandler.SetHoverState = function(icon, hoverStateVar)
-				icon.MouseEnter:Connect(function()
-					Actions[hoverStateVar] = true
-				end)
-
-				icon.MouseLeave:Connect(function()
-					Actions[hoverStateVar] = false
-				end)
+				Main.Services.UIS.InputBegan:Connect(Actions.Logic.Methods.HandleInput)
 			end
+		}
 
-			SocialsHandler.Discord = function()
-				setclipboard(options.Discord)
-			end
-
-			SocialsHandler.Youtube = function()
-				setclipboard(options.Youtube)
-				print(options.Youtube)
-			end
-
-			SocialsHandler.SetHoverState(Actions.DiscordIcon, "DiscordHover")
-			SocialsHandler.SetHoverState(Actions.YoutubeIcon, "YoutubeHover")
-
-			Main.Services.UIS.InputBegan:Connect(function(input)
-				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-					if Actions.DiscordHover then
-						SocialsHandler.Discord()
-					elseif Actions.YoutubeHover then
-						SocialsHandler.Youtube()
-					end
-				end
-			end)
-		end
+		Actions.Logic.Setup()
 	end	
 	-- Notifications
 	do
 		-- Function to build a notification or warning frame
-		local function NotificationBase(options, frameName, iconId)
+		local function NotificationBase(Options, frameName, iconId)
 			local Base = {}
 
 			-- Rendering
 			do
 				Base.NotificationFrame = Main.Utilities.NewObj("Frame", {
-					Parent = Tone.NotificationsFrame,
+					Parent = _Tone.NotificationsFrame,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 					Size = UDim2.new(1, 0, 0, 60),
@@ -1694,7 +1787,7 @@ function _Tone:Window(options)
 					AnchorPoint = Vector2.new(1, 0),
 					Size = UDim2.new(1, -60, 0, 14),
 					BorderColor3 = Color3.fromRGB(0, 0, 0),
-					Text = options.Title,
+					Text = Options.Title,
 					Name = "NotifType",
 					Position = UDim2.new(1, 0, 0, 14)
 				})
@@ -1713,7 +1806,7 @@ function _Tone:Window(options)
 					AnchorPoint = Vector2.new(1, 0),
 					Size = UDim2.new(1, -60, 0, 28),
 					BorderColor3 = Color3.fromRGB(0, 0, 0),
-					Text = options.Description,
+					Text = Options.Description,
 					Name = "Desc",
 					Position = UDim2.new(1, 1, 0, 33)
 				})
@@ -1725,37 +1818,50 @@ function _Tone:Window(options)
 				})
 			end
 
-			-- Logic
-			do
-				Base.DescLabel.Size = UDim2.new(Base.DescLabel.Size.X.Scale, Base.DescLabel.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y)
-				Base.NotifTypeLabel.Size = UDim2.new(Base.NotifTypeLabel.Size.X.Scale, Base.NotifTypeLabel.Size.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y)
-				Base.DescLabel.Position = UDim2.new(Base.NotifTypeLabel.Position.X.Scale, Base.NotifTypeLabel.Position.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y + 19)
-				Main.Utilities.Tween(Base.NotificationFrame, {
-					Size = UDim2.new(Base.NotificationFrame.Size.X.Scale, Base.NotificationFrame.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y + Base.NotifTypeLabel.TextBounds.Y + 34)
-				}, 0.2, Main.TweenTypes.Hover)
+			Base.Logic = {
+				Methods = {
+					UpdateSizesAndPositions = function()
+						Base.DescLabel.Size = UDim2.new(Base.DescLabel.Size.X.Scale, Base.DescLabel.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y)
+						Base.NotifTypeLabel.Size = UDim2.new(Base.NotifTypeLabel.Size.X.Scale, Base.NotifTypeLabel.Size.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y)
+						Base.DescLabel.Position = UDim2.new(Base.NotifTypeLabel.Position.X.Scale, Base.NotifTypeLabel.Position.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y + 19)
 
-				coroutine.wrap(function()
-					task.wait(options.Duration)
+						Main.Utilities.Tween(Base.NotificationFrame, {
+							Size = UDim2.new(Base.NotificationFrame.Size.X.Scale, Base.NotificationFrame.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y + Base.NotifTypeLabel.TextBounds.Y + 34)
+						}, 0.2, Main.TweenTypes.Hover)
+					end,
 
-					Main.Utilities.Tween(Base.NotificationFrame, {BackgroundTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+					FadeOutNotification = function(duration)
+						coroutine.wrap(function()
+							task.wait(duration)
 
-					for _, v in pairs(Base.NotificationFrame:GetDescendants()) do
-						if v:IsA("ImageLabel") then
-							Main.Utilities.Tween(v, {ImageTransparency = 1}, 0.6, Main.TweenTypes.Drag)
-						elseif v:IsA("TextLabel") then
-							Main.Utilities.Tween(v, {TextTransparency = 1}, 1.2, Main.TweenTypes.Drag)
-						end
+							Main.Utilities.Tween(Base.NotificationFrame, {BackgroundTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+
+							for _, v in pairs(Base.NotificationFrame:GetDescendants()) do
+								if v:IsA("ImageLabel") then
+									Main.Utilities.Tween(v, {ImageTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+								elseif v:IsA("TextLabel") then
+									Main.Utilities.Tween(v, {TextTransparency = 1}, 1.2, Main.TweenTypes.Drag)
+								end
+							end
+
+							task.wait(0.8)
+							Base.NotificationFrame:Destroy()
+						end)()
 					end
+				},
 
-					task.wait(0.8)
-					Base.NotificationFrame:Destroy()
+				Setup = function(self, options)
+					Base.Logic.Methods.UpdateSizesAndPositions()
+					Base.Logic.Methods.FadeOutNotification(Options.Duration or options.duration or 69420)
+				end
+			}
 
-				end)()	
-			end
+			Base.Logic.Setup(Options)
+
 			return Base	
 		end
 
-		function _Notifications:Notify(options)
+		function Tone:Notify(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Notification",
 				Description = "Preview Description",
@@ -1767,7 +1873,7 @@ function _Tone:Window(options)
 			return Notify
 		end
 
-		function _Notifications:Warn(options)
+		function Tone:Warn(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Warning",
 				Description = "Preview Warning",
@@ -1779,7 +1885,91 @@ function _Tone:Window(options)
 			return Warn
 		end
 	end
-	Main.Utilities.Dragify(Tone.MainFrame)
-	Main.Utilities.Cursor(Tone.MainFrame, 83884515509675)
-	return Tone
+	Main.Utilities.Dragify(_Tone.MainFrame)
+	Main.Utilities.Cursor(_Tone.MainFrame, 83884515509675)
+	return _Tone
 end
+
+
+local Window = Tone:Window({
+	Title = "Example Hub Baseplate",
+	Discord = "Discord.gg/Invitelink",
+	Youtube = "https://Youtube.com/Channelname"
+})
+
+local Tab = Window:Tab({
+	Title = "Example Tab"
+})
+
+local Label = Tab:Label({
+	Text = "Example Label"
+})
+
+local Warning = Tab:Warning({
+	Text = "Example Warning"
+})
+
+local Button = Tab:Button({
+	Title = "Example Button",
+	Callback = function() 
+		Tone:Notify({
+			Title = "Example Notification",
+			Description = "Cool Notification",
+			Duration = 2
+		})	
+	end
+})
+
+local Bind = Tab:Bind({
+	Title = "Example Button",
+	DefaultBind = "F",
+	Callback = function() 
+		Tone:Notify({
+			Title = "Example Notification",
+			Description = "Cool Notification",
+			Duration = 2
+		})
+	end
+})
+
+local Toggle = Tab:Toggle({
+	Title = "Example Toggle",
+	Callback = function(v)
+		if v == true then
+			Tone:Warn({
+				Title = "Toggle On",
+				Description = "Cool Warning",
+				Duration = 2
+			})
+		else
+			Tone:Warn({
+				Title = "Toggle Off",
+				Description = "Cool Warning",
+				Duration = 2
+			})
+		end
+	end
+})
+
+local Slider = Tab:Slider({
+	Title = "Example Slider",
+	Min = 0,
+	Max = 1000,
+	Default = 200,
+	Callback = function(v)
+		print(v)
+	end
+})
+
+local Dropdown = Tab:Dropdown({
+	Title = "Example Dropdown",
+	Selectmode = true
+})
+
+local DropdownItem = Dropdown.Logic.Methods.Add(1, "Example Item", function(Id, Title)
+	Tone:Notify({
+		Title = "Selected Something",
+		Description = "You have selected " .. Title,
+		Duration = 2
+	})
+end)
