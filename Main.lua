@@ -23,25 +23,22 @@ Main = {
 	},
 
 	Utilities = {
-		-- Merges default values with provided options.
 		Settings = function(Defaults, Options)
 			for i, v in pairs(Defaults) do
-				Options[i] = Options[i] or v  -- Simplified conditional assignment
+				Options[i] = Options[i] or v
 			end
 			return Options
 		end,
 
-		-- Creates and plays a tween animation with an optional callback.
 		Tween = function(Object, Goal, Duration, TweenType, Callback)
 			local Tween = Main.Services.tweenService:Create(Object, TweenInfo.new(Duration, TweenType[1], TweenType[2]), Goal)
 			Tween:Play()
 			if Callback then
-				Tween.Completed:Once(Callback)  -- Using `Once` to avoid potential memory leaks from multiple connections
+				Tween.Completed:Once(Callback)
 			end
 			return Tween
 		end,
 
-		-- Allows dragging of a UI frame with smooth movement.
 		Dragify = function(Frame)
 			local dragging, dragInput, mousePos, framePos
 			local UIS, Camera = Main.Services.UIS, Main.Vars.Camera
@@ -59,7 +56,6 @@ Main = {
 						mousePos = input.Position
 						framePos = Frame.Position
 
-						-- Handle mobile-specific features
 						if UIS.TouchEnabled then
 							UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
 							UIS.ModalEnabled = true
@@ -93,7 +89,6 @@ Main = {
 			end)
 		end,
 
-		-- Creates a new object and applies the given properties.
 		NewObj = function(className, properties)
 			local instance = Instance.new(className)
 			for prop, value in pairs(properties) do
@@ -102,14 +97,12 @@ Main = {
 			return instance
 		end,
 
-		-- Determines the device type (mobile or desktop) and adjusts dynamic UI size accordingly.
 		CheckDevice = function()
 			local UIS = Main.Services.UIS
 			Main.Vars.DynamicSize = UIS.TouchEnabled and UDim2.new(0, 370, 0, 220) or UDim2.new(0, 470, 0, 320)
 			return UIS.TouchEnabled
 		end,
 
-		-- Creates a custom cursor and updates its position dynamically.
 		Cursor = function(frame, rbxassetid)
 			if not frame or not rbxassetid then
 				warn("Invalid parameters. Please provide a valid frame and rbxassetid.")
@@ -132,7 +125,7 @@ Main = {
 
 				if mouseX >= framePosition.X and mouseX <= framePosition.X + frameSize.X and
 					mouseY >= framePosition.Y and mouseY <= framePosition.Y + frameSize.Y then
-					customCursor.Position = UDim2.new(0, mouseX - framePosition.X - 10, 0, mouseY - framePosition.Y - 10)
+					customCursor.Position = UDim2.new(0, mouseX - framePosition.X - 2, 0, mouseY - framePosition.Y - 2)
 					customCursor.Visible = true
 					UIS.MouseIconEnabled = false
 				else
@@ -363,6 +356,7 @@ function Tone:Window(options)
 						Name = "Tab",
 						AnchorPoint = Vector2.new(0, 1),
 						Size = UDim2.new(1, -10, 1, -55),
+						CanvasSize = UDim2.new(0, 0, 69420, 0),
 						ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
 						Position = UDim2.new(0, 5, 1, -5),
 						BorderColor3 = Color3.fromRGB(0, 0, 0),
@@ -1510,6 +1504,311 @@ function Tone:Window(options)
 
 							return Dropdown
 						end	
+						
+						function Tab:ColorPicker(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Color Picker",
+								Callback = function(v) print(v) end,
+								DefaultColor = Color3.fromRGB(255, 255, 255),
+								DefaultDarkness = 0
+							}, options or {})
+
+							local ColorPicker = {
+								State = true,
+								Hover = false,
+								HoverColor = false,
+								HoverDarkness = false,
+								ChangingColor = false,
+								ChangingDarkness = false
+							}
+
+							-- UI Elements Setup
+							do
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker
+								ColorPicker.Label = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									TextYAlignment = Enum.TextYAlignment.Top,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 65),
+									ClipsDescendants = true,
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = "Color Picker",
+									LayoutOrder = 3,
+									Name = "ColorPicker",
+									Position = UDim2.new(1, 0, 0, 0)
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.UIPadding
+								ColorPicker.Padding = Main.Utilities.NewObj("UIPadding", {
+									Parent = ColorPicker.Label,
+									PaddingTop = UDim.new(0, 5)
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.ColorGrad
+								ColorPicker.ColorGrad = Main.Utilities.NewObj("Frame", {
+									Parent = ColorPicker.Label,
+									Active = true,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									Selectable = true,
+									Size = UDim2.new(1, -40, 0, 15),
+									Position = UDim2.new(0, 0, 0, 25),
+									BorderColor3 = Color3.fromRGB(28, 43, 54),
+									Name = "ColorGrad"
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.ColorGrad.Grad
+								ColorPicker.ColorGradGradient = Main.Utilities.NewObj("UIGradient", {
+									Parent = ColorPicker.ColorGrad,
+									Name = "Grad",
+									Color = ColorSequence.new{
+										ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 5)),
+										ColorSequenceKeypoint.new(0.200, Color3.fromRGB(255, 255, 0)),
+										ColorSequenceKeypoint.new(0.400, Color3.fromRGB(0, 255, 0)),
+										ColorSequenceKeypoint.new(0.600, Color3.fromRGB(0, 255, 255)),
+										ColorSequenceKeypoint.new(0.800, Color3.fromRGB(0, 0, 255)),
+										ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 255))
+									}
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.ColorGrad.UICorner
+								ColorPicker.ColorGradCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = ColorPicker.ColorGrad,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.Color
+								ColorPicker.Color = Main.Utilities.NewObj("Frame", {
+									Parent = ColorPicker.Label,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(255, 0, 5),
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(0, 35, 0, 35),
+									Position = UDim2.new(1, 0, 0, 25),
+									BorderColor3 = Color3.fromRGB(28, 43, 54),
+									Name = "Color"
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.Color.UICorner
+								ColorPicker.ColorCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = ColorPicker.Color,
+									CornerRadius = UDim.new(0, 4)
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.DarkGrad
+								ColorPicker.DarkGrad = Main.Utilities.NewObj("Frame", {
+									Parent = ColorPicker.Label,
+									Active = true,
+									BorderSizePixel = 0,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									Selectable = true,
+									Size = UDim2.new(1, -40, 0, 15),
+									Position = UDim2.new(0, 0, 0, 45),
+									BorderColor3 = Color3.fromRGB(28, 43, 54),
+									Name = "DarkGrad"
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.DarkGrad.DarkGrad
+								ColorPicker.DarkGradGradient = Main.Utilities.NewObj("UIGradient", {
+									Parent = ColorPicker.DarkGrad,
+									Name = "DarkGrad",
+									Color = ColorSequence.new{
+										ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),
+										ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
+									}
+								})
+
+								-- StarterGui.Suno man.Main.TabArea.Tab.Color Picker.DarkGrad.UICorner
+								ColorPicker.DarkGradCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = ColorPicker.DarkGrad,
+									CornerRadius = UDim.new(0, 4)
+								})
+							end
+
+							ColorPicker.Logic = {
+								Methods = {
+									returnColor = function(percentage, gradientKeyPoints)
+										for i = 1, #gradientKeyPoints - 1 do
+											local currentPoint = gradientKeyPoints[i]
+											local nextPoint = gradientKeyPoints[i + 1]
+											if currentPoint.Time <= percentage and nextPoint.Time >= percentage then
+												local lerpFactor = (percentage - currentPoint.Time) / (nextPoint.Time - currentPoint.Time)
+												return currentPoint.Value:Lerp(nextPoint.Value, lerpFactor)
+											end
+										end
+										return gradientKeyPoints[#gradientKeyPoints].Value
+									end,
+
+									calculatePercentage = function(frame, lastX)
+										local mousePosition = Main.Services.UIS:GetMouseLocation()
+										local xPosition = lastX or mousePosition.X
+
+										if frame.AbsolutePosition and frame.AbsoluteSize then
+											return math.clamp(
+												(xPosition - frame.AbsolutePosition.X) / frame.AbsoluteSize.X,
+												0,
+												1
+											)
+										end
+										return 0
+									end,
+
+									updateColorPreview = function()
+										local colorPercentage, darknessPercentage
+
+										if ColorPicker.ChangingColor then
+											colorPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.ColorGrad)
+											ColorPicker.LastColorX = Main.Services.UIS:GetMouseLocation().X
+											darknessPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.DarkGrad, ColorPicker.LastDarknessX)
+										elseif ColorPicker.ChangingDarkness then
+											colorPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.ColorGrad, ColorPicker.LastColorX)
+											darknessPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.DarkGrad)
+											ColorPicker.LastDarknessX = Main.Services.UIS:GetMouseLocation().X
+										else
+											colorPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.ColorGrad, ColorPicker.LastColorX)
+											darknessPercentage = ColorPicker.Logic.Methods.calculatePercentage(ColorPicker.DarkGrad, ColorPicker.LastDarknessX)
+										end
+
+										local baseColor = ColorPicker.Logic.Methods.returnColor(colorPercentage, ColorPicker.ColorGradGradient.Color.Keypoints)
+										local finalColor = baseColor:Lerp(Color3.new(0, 0, 0), darknessPercentage)
+
+										ColorPicker.Color.BackgroundColor3 = finalColor
+										ColorPicker.CurrentColor = finalColor
+										ColorPicker.CurrentDarkness = darknessPercentage
+
+										-- Update the position of color and darkness indicators (if you have them)
+										if ColorPicker.ColorIndicator then
+											ColorPicker.ColorIndicator.Position = UDim2.new(colorPercentage, 0, 0.5, 0)
+										end
+										if ColorPicker.DarknessIndicator then
+											ColorPicker.DarknessIndicator.Position = UDim2.new(darknessPercentage, 0, 0.5, 0)
+										end
+										
+										options.Callback(finalColor)
+									end,
+
+									setDefaultColor = function(options)
+										local h, s, v = options.DefaultColor:ToHSV()
+										ColorPicker.LastColorX = h * ColorPicker.ColorGrad.AbsoluteSize.X + ColorPicker.ColorGrad.AbsolutePosition.X
+										ColorPicker.LastDarknessX = options.DefaultDarkness * ColorPicker.DarkGrad.AbsoluteSize.X + ColorPicker.DarkGrad.AbsolutePosition.X
+										ColorPicker.CurrentColor = options.DefaultColor
+										ColorPicker.CurrentDarkness = options.DefaultDarkness
+										ColorPicker.Color.BackgroundColor3 = options.DefaultColor:Lerp(Color3.new(0, 0, 0), options.DefaultDarkness)
+
+										-- Set initial positions of color and darkness indicators (if you have them)
+										if ColorPicker.ColorIndicator then
+											ColorPicker.ColorIndicator.Position = UDim2.new(h, 0, 0.5, 0)
+										end
+										if ColorPicker.DarknessIndicator then
+											ColorPicker.DarknessIndicator.Position = UDim2.new(options.DefaultDarkness, 0, 0.5, 0)
+										end
+									end,
+
+									toggleColorPicker = function()
+										ColorPicker.State = not ColorPicker.State
+										if ColorPicker.State then
+											Main.Utilities.Tween(ColorPicker.Label, {Size = UDim2.new(1, 0, 0, 65)}, 0.4, Main.TweenTypes.Click)
+										else
+											Main.Utilities.Tween(ColorPicker.Label, {Size = UDim2.new(1, 0, 0, 30)}, 0.4, Main.TweenTypes.Click)
+										end
+									end
+								},
+
+								Events = {
+									MouseEnter = function()
+										ColorPicker.Hover = true
+									end,
+
+									MouseLeave = function()
+										ColorPicker.Hover = false
+									end,
+									
+									MouseEnterColor = function()
+										ColorPicker.HoverColor = true
+									end,
+
+									MouseLeaveColor = function()
+										ColorPicker.HoverColor = false
+									end,
+
+									MouseEnterDarkness = function()
+										ColorPicker.HoverDarkness = true
+									end,
+
+									MouseLeaveDarkness = function()
+										ColorPicker.HoverDarkness = false
+									end,
+
+									InputBegan = function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+											if ColorPicker.Hover and not (ColorPicker.HoverDarkness or ColorPicker.HoverColor) then
+												ColorPicker.Logic.Methods.toggleColorPicker()
+											elseif ColorPicker.State then
+												if ColorPicker.HoverColor then
+													ColorPicker.ChangingColor = true
+													ColorPicker.LastColorX = Main.Services.UIS:GetMouseLocation().X
+												end
+
+												if ColorPicker.HoverDarkness then
+													ColorPicker.ChangingDarkness = true
+													ColorPicker.LastDarknessX = Main.Services.UIS:GetMouseLocation().X
+												end
+
+												if (ColorPicker.ChangingColor or ColorPicker.ChangingDarkness) and not ColorPicker.Connection then
+													ColorPicker.Connection = Main.Services.runService.RenderStepped:Connect(function()
+														ColorPicker.Logic.Methods.updateColorPreview()
+														Main.Vars.stopforce = true
+													end)
+												end
+											end
+										end
+									end,
+
+									InputEnded = function(input)
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+											ColorPicker.ChangingColor = false
+											ColorPicker.ChangingDarkness = false
+
+											if ColorPicker.Connection then
+												ColorPicker.Connection:Disconnect()
+												ColorPicker.Connection = nil
+												Main.Vars.stopforce = false
+											end
+										end
+									end
+								},
+
+								Setup = function(options)
+									ColorPicker.Label.MouseEnter:Connect(ColorPicker.Logic.Events.MouseEnter)
+									ColorPicker.Label.MouseLeave:Connect(ColorPicker.Logic.Events.MouseLeave)
+									ColorPicker.ColorGrad.MouseEnter:Connect(ColorPicker.Logic.Events.MouseEnterColor)
+									ColorPicker.ColorGrad.MouseLeave:Connect(ColorPicker.Logic.Events.MouseLeaveColor)
+									ColorPicker.DarkGrad.MouseEnter:Connect(ColorPicker.Logic.Events.MouseEnterDarkness)
+									ColorPicker.DarkGrad.MouseLeave:Connect(ColorPicker.Logic.Events.MouseLeaveDarkness)
+
+									Main.Services.UIS.InputBegan:Connect(ColorPicker.Logic.Events.InputBegan)
+									Main.Services.UIS.InputEnded:Connect(ColorPicker.Logic.Events.InputEnded)
+
+									ColorPicker.Logic.Methods.setDefaultColor(options)
+									ColorPicker.State = true
+									ColorPicker.Label.Size = UDim2.new(1, 0, 0, 65)
+								end
+							}
+							
+							ColorPicker.Logic.Setup({
+								DefaultColor = options.DefaultColor,
+								DefaultDarkness = options.DefaultDarkness
+							})
+
+							return ColorPicker
+						end
 					end
 				end	
 				return Tab	
