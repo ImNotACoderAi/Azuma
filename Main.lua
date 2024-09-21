@@ -422,8 +422,8 @@ function Tone:Window(options)
 
 							ActivateTab = function(self)
 								if not Tab.Active then
-									if _Tone.CurrentTab then
-										_Tone.CurrentTab:DeactivateTab()
+									if _Tone.CurrentTab and _Tone.CurrentTab.Logic and _Tone.CurrentTab.Logic.Methods then
+										_Tone.CurrentTab.Logic.Methods.DeactivateTab()
 									end
 									Tab.Active = true
 									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.8, Main.TweenTypes.Click)
@@ -1008,7 +1008,7 @@ function Tone:Window(options)
 									AnchorPoint = Vector2.new(1, 0),
 									Size = UDim2.new(1, 0, 0, 40),
 									BorderColor3 = Color3.fromRGB(0, 0, 0),
-									Text = "Slider",
+									Text = options.Title,
 									Name = "Slider",
 									Position = UDim2.new(1, 0, 0, 0)
 								})
@@ -2188,3 +2188,99 @@ function Tone:Window(options)
 	Main.Utilities.Cursor(_Tone.MainFrame, 83884515509675)
 	return _Tone
 end
+
+
+local Window = Tone:Window({
+	Title = "Example Hub Baseplate",
+	Discord = "Discord.gg/Invitelink",
+	Youtube = "https://Youtube.com/Channelname"
+})
+
+local Tab = Window:Tab({
+	Title = "Example Tab"
+})
+
+local Tab2 = Window:Tab({
+	Title = "Example Tab"
+})
+
+local Label = Tab:Label({
+	Text = "Example Label"
+})
+
+local Warning = Tab:Warning({
+	Text = "Example Warning"
+})
+
+local Button = Tab:Button({
+	Title = "Example Button",
+	Callback = function() 
+		Tone:Notify({
+			Title = "Example Notification",
+			Description = "Cool Notification",
+			Duration = 2
+		})	
+	end
+})
+
+local Bind = Tab:Bind({
+	Title = "Example Button",
+	DefaultBind = "F",
+	Callback = function() 
+		Tone:Notify({
+			Title = "Example Notification",
+			Description = "Cool Notification",
+			Duration = 2
+		})
+	end
+})
+
+local Toggle = Tab:Toggle({
+	Title = "Example Toggle",
+	Callback = function(v)
+		if v == true then
+			Tone:Warn({
+				Title = "Toggle On",
+				Description = "Cool Warning",
+				Duration = 2
+			})
+		else
+			Tone:Warn({
+				Title = "Toggle Off",
+				Description = "Cool Warning",
+				Duration = 2
+			})
+		end
+	end
+})
+
+local Slider = Tab:Slider({
+	Title = "Example Slider",
+	Min = 0,
+	Max = 1000,
+	Default = 200,
+	Callback = function(v)
+		print(v)
+	end
+})
+
+local Dropdown = Tab:Dropdown({
+	Title = "Example Dropdown",
+	Selectmode = true
+})
+
+local DropdownItem = Dropdown.Logic.Methods.Add(1, "Example Item", function(Id, Title)
+	Tone:Notify({
+		Title = "Selected Something",
+		Description = "You have selected " .. Title,
+		Duration = 2
+	})
+end)
+
+local CP = Tab:ColorPicker({
+	DefaultDarkness = 0.5,
+	Callback = function(v)
+		workspace.Baseplate.Color = v
+	end,
+})
+
