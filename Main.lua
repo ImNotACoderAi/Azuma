@@ -145,6 +145,7 @@ Tone = {}
 function Tone:Window(options)
 	options = Main.Utilities.Settings({
 		Title = "_Tone Hub Baseplate",
+		UIBing = "RightShift",
 		Discord = "Not Set",
 		Youtube = "Not Set",
 	}, options or {})
@@ -1539,7 +1540,7 @@ function Tone:Window(options)
 									Size = UDim2.new(1, 0, 0, 65),
 									ClipsDescendants = true,
 									BorderColor3 = Color3.fromRGB(0, 0, 0),
-									Text = "Color Picker",
+									Text = options.Title,
 									LayoutOrder = 3,
 									Name = "ColorPicker",
 									Position = UDim2.new(1, 0, 0, 0)
@@ -1989,7 +1990,7 @@ function Tone:Window(options)
 
 				HandleInput = function(input)
 					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-						if Actions.ExitHover then
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch or input.KeyCode == Enum.KeyCode.options.UIBind:sub(1, 1) and Actions.ExitHover then
 							Actions.Logic.Methods.CloseFrame()
 						elseif Actions.OpenHover then
 							Actions.Logic.Methods.OpenFrame()
