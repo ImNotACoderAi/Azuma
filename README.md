@@ -93,11 +93,6 @@ Callback = <function> - The function of the toggle.
 ]]
 ```
 
-### Changing the value of an existing Toggle
-```lua
-Toggle:Set(true)
-```
-
 ## Creating a Slider
 ```lua
 local Slider = Tab:Slider({
@@ -117,11 +112,6 @@ Max = <number> - The maximum value of the slider.
 Default = <number> - The default value of the slider.
 Callback = <function> - The function of the slider.
 ]]
-```
-
-### Change Slider Value
-```lua
-Slider:Set(75)
 ```
 
 ## Creating a Bind
@@ -164,6 +154,24 @@ end)
 id = <number> - The id of the option.
 title = <string> - The name of the option.
 callback = <function> - The function called when the option is selected.
+]]
+```
+
+## Creating a Color Picker
+```lua
+local Color Picker = Tab:ColorPicker({
+    Title = "ColorPicker",
+    DefaultColor = Color3.fromRGB(255, 255, 255)
+    DefaultDarkness = 0 - 1
+    Callback = function(Value)
+        print(Value)
+    end    
+})
+
+--[[
+Title = <string> - The name of the Color Picker.
+DefaultColor = Color3.fromRGB(<number>) - The default Color of the Color Picker.
+Callback = <function> - The function of the Color Picker.
 ]]
 ```
 
