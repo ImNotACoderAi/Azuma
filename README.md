@@ -3,8 +3,12 @@ This documentation is for the stable release of Tone UI Library. "A better Delmo
 
 ## Booting the Library
 ```lua
-local Tone = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/TONE/main/Main.lua",true))()
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/TONE/main/Main.lua",true))()
 ```
+
+# IMPORTANT
+
+- The name of the libary while declaring it cannot be "Tone" Or else you wont be able to use the library
 
 ## Creating a Window
 ```lua
