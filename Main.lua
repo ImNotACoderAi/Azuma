@@ -167,7 +167,7 @@ function Tone:Window(options)
 	do
 		-- Rendering
 		do
-			Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
+			_Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
 				Parent = Main.Services.runService:IsStudio() and Main.Vars.localPlayer:WaitForChild("PlayerGui") or Main.Services.coreGui,
 				IgnoreGuiInset = true,
 				ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
