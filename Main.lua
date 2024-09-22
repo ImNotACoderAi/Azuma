@@ -138,7 +138,7 @@ Main = {
 }
 
 if _G.Running == true then
-	return
+	game.CoreGui:FindFirstChild("Tone - By Zephy"):Destroy()
 end
 
 _G.Running = true
@@ -167,11 +167,11 @@ function Tone:Window(options)
 	do
 		-- Rendering
 		do
-			_Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
+			Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
 				Parent = Main.Services.runService:IsStudio() and Main.Vars.localPlayer:WaitForChild("PlayerGui") or Main.Services.coreGui,
 				IgnoreGuiInset = true,
 				ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
-				Name = "_Tone - By Zephy",
+				Name = "Tone - By Zephy",
 				ResetOnSpawn = false
 			})
 
