@@ -1990,7 +1990,7 @@ function Tone:Window(options)
 
 				HandleInput = function(input)
 					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch or input.KeyCode == Enum.KeyCode.options.UIBind:sub(1, 1) and Actions.ExitHover then
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Actions.ExitHover then
 							Actions.Logic.Methods.CloseFrame()
 						elseif Actions.OpenHover then
 							Actions.Logic.Methods.OpenFrame()
