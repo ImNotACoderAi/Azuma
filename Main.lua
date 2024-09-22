@@ -1388,7 +1388,7 @@ function Tone:Window(options)
 													end
 													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
 													Dropdown.SelectedItems = { [Id] = Title }
-													Dropdown:Toggle()
+													Dropdown.Logic.Methods.Toggle()
 												end
 												Callback(Id, Title)
 											end
@@ -1500,9 +1500,12 @@ function Tone:Window(options)
 									Main.Services.UIS.InputEnded:Connect(Dropdown.Logic.Events.InputEnded)
 								end
 							}
-
+		
 							Dropdown.Logic.Setup()
-
+							function Dropdown:Add(Id, Title, Callback) 
+								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
+							end
+							
 							return Dropdown
 						end	
 						
