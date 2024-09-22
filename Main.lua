@@ -1216,8 +1216,7 @@ function Tone:Window(options)
 									Size = UDim2.new(1, 0, 0, 30),
 									ClipsDescendants = true,
 									BorderColor3 = Color3.fromRGB(0, 0, 0),
-									Text = "Dropdown",
-									LayoutOrder = 3,
+									Text = options.Title,
 									Name = "Dropdown",
 									Position = UDim2.new(1, 0, 0, 0),
 								})
