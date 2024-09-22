@@ -14,14 +14,16 @@ local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACod
 ```lua
 local Window = Tone:Window({
     Title = "Title of the library",
-    Discord = "Discord.gg/YourInviteLink",
-    Youtube = "https://Youtube.com/YourChannel"
+    Bind = "RightShift",
+    DiscordLink = "Discord.gg/YourInviteLink",
+    YoutubeLink = "https://Youtube.com/YourChannel"
 })
 
 --[[
 Title = <string> - The name of the UI.
-Discord = <string> - The Discord invite link to be displayed.
-Youtube = <string> - The YouTube channel link to be displayed.
+DiscordLink = <string> - The Bind to close and open the UI.
+DiscordLink = <string> - The Discord invite link to be displayed.
+YoutubeLink = <string> - The YouTube channel link to be displayed.
 ]]
 ```
 
