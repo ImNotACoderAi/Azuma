@@ -137,6 +137,14 @@ Main = {
 	}
 }
 
+if _G.Running == true then
+	return
+end
+
+_G.Running = true
+
+local startTime = tick()
+
 Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
 Main.Utilities.CheckDevice()
 
@@ -144,14 +152,15 @@ Tone = {}
 
 function Tone:Window(options)
 	options = Main.Utilities.Settings({
-		Title = "_Tone Hub Baseplate",
-		UIBing = "RightShift",
-		Discord = "Not Set",
-		Youtube = "Not Set",
+		Title = "Tone UI Library",
+		Bind = "RightShift",
+		DiscordLink = "Not Set",
+		YoutubeLink = "Not Set",
 	}, options or {})
-
+	
 	local _Tone = {
 		CurrentTab = nil,
+		UIBind = options.Bind
 	}
 
 	-- Main
@@ -204,7 +213,7 @@ function Tone:Window(options)
 				BorderColor3 = Color3.fromRGB(0, 0, 0),
 				Name = "Main"
 			})
-			
+
 			_Tone.TransitionFrame = Main.Utilities.NewObj("Frame", {
 				Parent = _Tone.MainFrame,
 				Size = UDim2.new(1, 0, 0, 0),
@@ -535,7 +544,7 @@ function Tone:Window(options)
 
 							Label.Logic.Methods.Update()
 							Label.Logic.Setup()
-							
+
 							return Label
 						end
 
@@ -594,10 +603,10 @@ function Tone:Window(options)
 								Setup = function()
 									Warning.MainText.MouseEnter:Connect(Warning.Logic.Events.MouseEnter)
 									Warning.MainText.MouseLeave:Connect(Warning.Logic.Events.MouseLeave)
-									
+
 								end
 							}
-							
+
 							Warning.Logic.Methods:Update()
 							Warning.Logic.Setup()
 
@@ -1078,7 +1087,7 @@ function Tone:Window(options)
 									CornerRadius = UDim.new(0, 12)
 								})
 							end
-							
+
 							Slider.Logic = {
 								Methods = {
 									SetValue = function(self, v)
@@ -1271,7 +1280,7 @@ function Tone:Window(options)
 								})
 
 							end
-							
+
 							Dropdown.Logic = {
 								Methods = {
 									Add = function(Id, Title, Callback, self)
@@ -1500,15 +1509,15 @@ function Tone:Window(options)
 									Main.Services.UIS.InputEnded:Connect(Dropdown.Logic.Events.InputEnded)
 								end
 							}
-		
+
 							Dropdown.Logic.Setup()
 							function Dropdown:Add(Id, Title, Callback) 
 								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
 							end
-							
+
 							return Dropdown
 						end	
-						
+
 						function Tab:ColorPicker(options)
 							options = Main.Utilities.Settings({
 								Title = "Preview Color Picker",
@@ -1694,7 +1703,7 @@ function Tone:Window(options)
 										if ColorPicker.DarknessIndicator then
 											ColorPicker.DarknessIndicator.Position = UDim2.new(darknessPercentage, 0, 0.5, 0)
 										end
-										
+
 										options.Callback(finalColor)
 									end,
 
@@ -1733,7 +1742,7 @@ function Tone:Window(options)
 									MouseLeave = function()
 										ColorPicker.Hover = false
 									end,
-									
+
 									MouseEnterColor = function()
 										ColorPicker.HoverColor = true
 									end,
@@ -1805,7 +1814,7 @@ function Tone:Window(options)
 									ColorPicker.Label.Size = UDim2.new(1, 0, 0, 65)
 								end
 							}
-							
+
 							ColorPicker.Logic.Setup({
 								DefaultColor = options.DefaultColor,
 								DefaultDarkness = options.DefaultDarkness
@@ -1946,9 +1955,9 @@ function Tone:Window(options)
 							_Tone.TransitionFrame.Position = UDim2.new(0, 0, 1, 0)
 
 							task.wait(0.1)
-							
+
 							Main.Utilities.Tween(_Tone.MainFrame, {Size = UDim2.new(0, _Tone.MainFrame.Size.X.Offset, 0, 0)}, 0.8, Main.TweenTypes.Drag)
-							
+
 							coroutine.wrap(function()
 								task.wait(0.51)
 								_Tone.ShadowImage.Visible = false
@@ -1992,16 +2001,21 @@ function Tone:Window(options)
 				end,
 
 				HandleInput = function(input)
-					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Actions.ExitHover then
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						if Actions.ExitHover and Actions.Open then
 							Actions.Logic.Methods.CloseFrame()
-						elseif Actions.OpenHover then
+						elseif Actions.OpenHover and Actions.Close then
 							Actions.Logic.Methods.OpenFrame()
 						elseif Actions.DiscordHover then
-							setclipboard(options.Discord)
+							setclipboard(options.DiscordLink)
 						elseif Actions.YoutubeHover then
-							setclipboard(options.Youtube)
-							print(options.Youtube)
+							setclipboard(options.YoutubeLink)
+						end
+					elseif input.UserInputType == Enum.UserInputType.Keyboard then
+						if input.KeyCode == Enum.KeyCode[_Tone.UIBind] and Actions.Open then
+							Actions.Logic.Methods.CloseFrame()
+						elseif input.KeyCode == Enum.KeyCode[_Tone.UIBind] and Actions.Close then
+							Actions.Logic.Methods.OpenFrame()
 						end
 					end
 				end
@@ -2192,3 +2206,7 @@ function Tone:Window(options)
 	Main.Utilities.Cursor(_Tone.MainFrame, 83884515509675)
 	return _Tone
 end
+
+local LoadTime = math.floor((tick() - startTime) * 1000)
+
+print("Loaded Tone Ui Libary That Took ".. LoadTime)
