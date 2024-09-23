@@ -1552,7 +1552,6 @@ function Tone:Window(options)
 									ClipsDescendants = true,
 									BorderColor3 = Color3.fromRGB(0, 0, 0),
 									Text = options.Title,
-									LayoutOrder = 3,
 									Name = "ColorPicker",
 									Position = UDim2.new(1, 0, 0, 0)
 								})
