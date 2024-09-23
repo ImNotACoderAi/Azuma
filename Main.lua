@@ -157,7 +157,7 @@ function Tone:Window(options)
 		DiscordLink = "Not Set",
 		YoutubeLink = "Not Set",
 	}, options or {})
-	
+
 	local _Tone = {
 		CurrentTab = nil,
 		UIBind = options.Bind
@@ -1410,6 +1410,8 @@ function Tone:Window(options)
 												resetAppearance()
 											end
 										end)
+										
+										Instances = Dropdown.Items[Id]
 									end,
 
 									GetSelectedItems = function(self)
@@ -1463,6 +1465,16 @@ function Tone:Window(options)
 											Dropdown.DropdownItems.Visible = true
 											Main.Utilities.Tween(Dropdown.Dropdown, {Size = UDim2.new(1, 0, 0, 7 + (count * 20) + 1)}, 0.4, Main.TweenTypes.Click)
 										end
+									end,
+									
+									Refresh = function()
+										for id, _ in pairs(Dropdown.Items) do
+											self:Remove(id)
+										end
+										
+										for id, value in pairs(Dropdown.Items) do
+											self:Add(id, value)
+										end
 									end
 								},
 
@@ -1512,6 +1524,10 @@ function Tone:Window(options)
 							Dropdown.Logic.Setup()
 							function Dropdown:Add(Id, Title, Callback) 
 								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
+							end
+							
+							function Dropdown:Refresh()
+								Dropdown.Logic.Methods.Refresh()
 							end
 
 							return Dropdown
