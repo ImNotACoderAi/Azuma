@@ -148,9 +148,9 @@ local startTime = tick()
 Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
 Main.Utilities.CheckDevice()
 
-Tone = {}
+Azuma = {}
 
-function Tone:Window(options)
+function Azuma:Window(options)
 	options = Main.Utilities.Settings({
 		Title = "Tone UI Library",
 		Bind = "RightShift",
@@ -1311,108 +1311,112 @@ function Tone:Window(options)
 											FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 											TextColor3 = Color3.fromRGB(255, 255, 255),
 											Size = UDim2.new(1, 0, 0, 20),
-											BorderColor3 = Color3.fromRGB(0, 0, 0),
 											Text = Title,
 											Name = "Item",
 										})
 
-										Dropdown.Items[Id].instance.ItemCorner = Main.Utilities.NewObj("UICorner", {
+										Main.Utilities.NewObj("UICorner", {
 											Parent = Dropdown.Items[Id].instance.Item,
 											CornerRadius = UDim.new(0, 4),
 										})
 
-										Dropdown.Items[Id].instance.ItemPadding = Main.Utilities.NewObj("UIPadding", {
+										Main.Utilities.NewObj("UIPadding", {
 											Parent = Dropdown.Items[Id].instance.Item,
 											PaddingLeft = UDim.new(0, 5),
 										})
 
-										-- Logic
 										local function setHoverAppearance()
-											if not Item.MouseDown then
-												if options.Selectmode then
-													if Item.Selected then
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-													else
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-													end
+											if Item.MouseDown then return end
+
+											local bgColor, textColor
+											if options.Selectmode then
+												if Item.Selected then
+													bgColor = Color3.fromRGB(255, 255, 255)
+													textColor = Color3.fromRGB(0, 0, 0)
 												else
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(30, 30, 30)
+													textColor = Color3.fromRGB(255, 255, 255)
 												end
+											else
+												bgColor = Color3.fromRGB(30, 30, 30)
+												textColor = Color3.fromRGB(255, 255, 255)
 											end
+
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = bgColor}, 0.2, Main.TweenTypes.Hover)
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = textColor}, 0.2, Main.TweenTypes.Hover)
 										end
 
 										local function resetAppearance()
-											if Item.MouseDown then
-												return
-											end
+											if Item.MouseDown then return end
 
+											local bgColor, textColor
 											if options.Selectmode then
 												if Item.Selected then
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Hover)
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(230, 230, 230)
+													textColor = Color3.fromRGB(0, 0, 0)
 												else
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(19, 19, 19)
+													textColor = Color3.fromRGB(255, 255, 255)
 												end
 											else
-												Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+												bgColor = Color3.fromRGB(19, 19, 19)
+												textColor = Color3.fromRGB(255, 255, 255)
 											end
+
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = bgColor}, 0.2, Main.TweenTypes.Hover)
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = textColor}, 0.2, Main.TweenTypes.Hover)
 										end
 
-										-- Main Logic
-										Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
-											Item.Hover = true
-											Dropdown.HoveringItem = true
-											setHoverAppearance()
-										end)
+										local function connectEvents()
+											Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
+												Item.Hover = true
+												Dropdown.HoveringItem = true
+												setHoverAppearance()
+											end)
 
-										Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
-											Item.Hover = false
-											Dropdown.HoveringItem = false
-											resetAppearance()
-										end)
-
-										Main.Services.UIS.InputBegan:Connect(function(input)
-											if Dropdown.Items[Id] == nil then return end
-
-											if (input.UserInputType == Enum.UserInputType.MouseButton1 and Item.Hover) or (input.UserInputType == Enum.UserInputType.Touch and Item.Hover) then
-												Item.MouseDown = true
-
-												if options.Selectmode then
-													Item.Selected = not Item.Selected
-													Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-													if Item.Hover then
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Click)
-													else
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
-													end
-												else
-													for i, v in pairs(Dropdown.Items) do
-														if v.instance then
-															v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
-														end
-													end
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
-													Dropdown.SelectedItems = { [Id] = Title }
-													Dropdown.Logic.Methods.Toggle()
-												end
-												Callback(Id, Title)
-											end
-										end)
-
-										Main.Services.UIS.InputEnded:Connect(function(input)
-											if Dropdown.Items[Id] == nil then return end
-
-											if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-												Item.MouseDown = false
+											Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
+												Item.Hover = false
+												Dropdown.HoveringItem = false
 												resetAppearance()
-											end
-										end)
+											end)
 
-										Instances = Dropdown.Items[Id]
+											Main.Services.UIS.InputBegan:Connect(function(input)
+												if Dropdown.Items[Id] == nil then return end
+
+												if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Item.Hover then
+													Item.MouseDown = true
+
+													if options.Selectmode then
+														Item.Selected = not Item.Selected
+														Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Item.Hover and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
+													else
+														for _, v in pairs(Dropdown.Items) do
+															if v.instance then
+																v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
+															end
+														end
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
+														Dropdown.SelectedItems = { [Id] = Title }
+														Dropdown.Logic.Methods.Toggle()
+													end
+													Callback(Id, Title)
+												end
+											end)
+
+											Main.Services.UIS.InputEnded:Connect(function(input)
+												if Dropdown.Items[Id] == nil then return end
+
+												if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+													Item.MouseDown = false
+													resetAppearance()
+												end
+											end)
+										end
+
+										connectEvents()
+										Dropdown.Items[Id].Callback = Callback 
 									end,
 
 									GetSelectedItems = function(self)
@@ -1424,17 +1428,13 @@ function Tone:Window(options)
 											end
 										end
 
-										if selectedText == "" then
-											return "No items selected"
-										else
-											return selectedText:sub(1, -3)
-										end
+										return selectedText == "" and "No items selected" or selectedText:sub(1, -3)
 									end,
 
-									Remove = function(self, id)
-										if Dropdown.Items[id] ~= nil then
-											if Dropdown.Items[id].instance ~= nil then
-												for i, v in pairs(Dropdown.Items[id].instance) do
+									Remove = function(id, self)
+										if Dropdown.Items[id] then
+											if Dropdown.Items[id].instance then
+												for _, v in pairs(Dropdown.Items[id].instance) do
 													v:Destroy()
 												end
 											end
@@ -1443,8 +1443,8 @@ function Tone:Window(options)
 									end,
 
 									Clear = function(self)
-										for i, v in pairs(Dropdown.Items) do
-											Dropdown:Remove(i)
+										for i in pairs(Dropdown.Items) do
+											Dropdown.Logic.Methods.Remove(i)
 										end
 									end,
 
@@ -1457,10 +1457,8 @@ function Tone:Window(options)
 											end)
 										else
 											local count = 0
-											for i, v in pairs(Dropdown.Items) do
-												if v ~= nil then
-													count += 1
-												end
+											for _ in pairs(Dropdown.Items) do
+												count += 1
 											end
 
 											Dropdown.DropdownItems.Visible = true
@@ -1468,13 +1466,20 @@ function Tone:Window(options)
 										end
 									end,
 
-									Refresh = function()
-										for id, _ in pairs(Dropdown.Items) do
-											self:Remove(id)
+									Refresh = function(options, self)
+										local oldCallback
+										if Dropdown.SelectedItems then
+											for id, item in pairs(Dropdown.SelectedItems) do
+												if Dropdown.Items[id] then
+													oldCallback = Dropdown.Items[id].Callback
+													break
+												end
+											end
 										end
 
-										for id, value in pairs(Dropdown.Items) do
-											self:Add(id, value)
+										Dropdown.Logic.Methods.Clear()
+										for _, object in pairs(options) do
+											Dropdown:Add(object, object.Name, oldCallback)
 										end
 									end
 								},
@@ -1527,8 +1532,12 @@ function Tone:Window(options)
 								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
 							end
 
-							function Dropdown:Refresh()
-								Dropdown.Logic.Methods.Refresh()
+							function Dropdown:Refresh(options)
+								Dropdown.Logic.Methods.Refresh(options)
+							end
+							
+							function Dropdown:Clear()
+								Dropdown.Logic.Methods.Clear()
 							end
 
 							return Dropdown
@@ -2369,7 +2378,7 @@ function Tone:Window(options)
 			return Base	
 		end
 
-		function Tone:Notify(options)
+		function Azuma:Notify(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Notification",
 				Description = "Preview Description",
@@ -2381,7 +2390,7 @@ function Tone:Window(options)
 			return Notify
 		end
 
-		function Tone:Warn(options)
+		function Azuma:Warn(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Warning",
 				Description = "Preview Warning",
