@@ -2407,7 +2407,7 @@ function Azuma:Window(options)
 	return _Azuma
 end
 
-
+return Azuma
 
 local LoadTime = math.floor((tick() - startTime) * 1000)
 
