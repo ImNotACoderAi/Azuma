@@ -148,9 +148,9 @@ local startTime = tick()
 Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
 Main.Utilities.CheckDevice()
 
-Tone = {}
+Azuma = {}
 
-function Tone:Window(options)
+function Azuma:Window(options)
 	options = Main.Utilities.Settings({
 		Title = "Tone UI Library",
 		Bind = "RightShift",
@@ -159,7 +159,7 @@ function Tone:Window(options)
 		YoutubeLink = "Not Set",
 	}, options or {})
 
-	local _Tone = {
+	local _Azuma = {
 		CurrentTab = nil,
 		UIBind = options.Bind
 	}
@@ -168,7 +168,7 @@ function Tone:Window(options)
 	do
 		-- Rendering
 		do
-			_Tone.Gui = Main.Utilities.NewObj("ScreenGui", {
+			_Azuma.Gui = Main.Utilities.NewObj("ScreenGui", {
 				Parent = Main.Services.runService:IsStudio() and Main.Vars.localPlayer:WaitForChild("PlayerGui") or Main.Services.coreGui,
 				IgnoreGuiInset = true,
 				ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets,
@@ -176,8 +176,8 @@ function Tone:Window(options)
 				ResetOnSpawn = false
 			})
 
-			_Tone.NotificationsFrame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.Gui,
+			_Azuma.NotificationsFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				AnchorPoint = Vector2.new(1, 0),
@@ -189,23 +189,23 @@ function Tone:Window(options)
 				SelectionGroup = true
 			})
 
-			_Tone.NotificationsListLayout = Main.Utilities.NewObj("UIListLayout", {
-				Parent = _Tone.NotificationsFrame,
+			_Azuma.NotificationsListLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = _Azuma.NotificationsFrame,
 				Padding = UDim.new(0, 5),
 				VerticalAlignment = Enum.VerticalAlignment.Bottom,
 				SortOrder = Enum.SortOrder.LayoutOrder
 			})
 
-			_Tone.NotificationsPadding = Main.Utilities.NewObj("UIPadding", {
-				Parent = _Tone.NotificationsFrame,
+			_Azuma.NotificationsPadding = Main.Utilities.NewObj("UIPadding", {
+				Parent = _Azuma.NotificationsFrame,
 				PaddingTop = UDim.new(0, 5),
 				PaddingRight = UDim.new(0, 5),
 				PaddingLeft = UDim.new(0, 5),
 				PaddingBottom = UDim.new(0, 5)
 			})
 
-			_Tone.MainFrame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.Gui,
+			_Azuma.MainFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 				AnchorPoint = Vector2.new(0.5, 0.5),
@@ -215,8 +215,8 @@ function Tone:Window(options)
 				Name = "Main"
 			})
 
-			_Tone.TransitionFrame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.MainFrame,
+			_Azuma.TransitionFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.MainFrame,
 				Size = UDim2.new(1, 0, 0, 0),
 				Position = UDim2.new(0, 0, 0, 0),
 				AnchorPoint = Vector2.new(0, 0),
@@ -224,18 +224,18 @@ function Tone:Window(options)
 				ZIndex = 79420
 			})
 
-			_Tone.TransitionCorner = Main.Utilities.NewObj("UICorner", {
-				Parent = _Tone.TransitionFrame,
+			_Azuma.TransitionCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = _Azuma.TransitionFrame,
 				CornerRadius = UDim.new(0, 6)
 			})
 
-			_Tone.MainCorner = Main.Utilities.NewObj("UICorner", {
-				Parent = _Tone.MainFrame,
+			_Azuma.MainCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = _Azuma.MainFrame,
 				CornerRadius = UDim.new(0, 6)
 			})
 
-			_Tone.ShadowFrame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.MainFrame,
+			_Azuma.ShadowFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.MainFrame,
 				ZIndex = 0,
 				BorderSizePixel = 0,
 				Size = UDim2.new(1, 0, 1, 0),
@@ -243,8 +243,8 @@ function Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			_Tone.ShadowImage = Main.Utilities.NewObj("ImageLabel", {
-				Parent = _Tone.ShadowFrame,
+			_Azuma.ShadowImage = Main.Utilities.NewObj("ImageLabel", {
+				Parent = _Azuma.ShadowFrame,
 				ZIndex = 0,
 				BorderSizePixel = 0,
 				SliceCenter = Rect.new(49, 49, 450, 450),
@@ -259,8 +259,8 @@ function Tone:Window(options)
 				Position = UDim2.new(0.5, 0, 0.5, 0)
 			})
 
-			_Tone.Divider = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.MainFrame,
+			_Azuma.Divider = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(19, 19, 19),
 				Size = UDim2.new(0, 1, 1, 0),
@@ -269,8 +269,8 @@ function Tone:Window(options)
 				Name = "Divider"
 			})
 
-			_Tone.NavigationFrame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.MainFrame,
+			_Azuma.NavigationFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				Size = UDim2.new(0, 120, 1, 0),
@@ -279,8 +279,8 @@ function Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			_Tone.TitleLabel = Main.Utilities.NewObj("TextLabel", {
-				Parent = _Tone.NavigationFrame,
+			_Azuma.TitleLabel = Main.Utilities.NewObj("TextLabel", {
+				Parent = _Azuma.NavigationFrame,
 				TextWrapped = true,
 				BorderSizePixel = 0,
 				TextYAlignment = Enum.TextYAlignment.Top,
@@ -297,8 +297,8 @@ function Tone:Window(options)
 				Position = UDim2.new(0.5, 0, 0, 15)
 			})
 
-			_Tone.TabButtons = Main.Utilities.NewObj("ScrollingFrame", {
-				Parent = _Tone.NavigationFrame,
+			_Azuma.TabButtons = Main.Utilities.NewObj("ScrollingFrame", {
+				Parent = _Azuma.NavigationFrame,
 				Active = true,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -311,14 +311,14 @@ function Tone:Window(options)
 				BackgroundTransparency = 1
 			})
 
-			_Tone.TabButtonsLayout = Main.Utilities.NewObj("UIListLayout", {
-				Parent = _Tone.TabButtons,
+			_Azuma.TabButtonsLayout = Main.Utilities.NewObj("UIListLayout", {
+				Parent = _Azuma.TabButtons,
 				Padding = UDim.new(0, 5),
 				SortOrder = Enum.SortOrder.LayoutOrder
 			})
 
-			_Tone.TabArea = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.MainFrame,
+			_Azuma.TabArea = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.MainFrame,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				Size = UDim2.new(1, -120, 1, 0),
@@ -331,7 +331,7 @@ function Tone:Window(options)
 		-- Tab/Logic
 		do
 			-- Tab
-			function _Tone:Tab(options)
+			function _Azuma:Tab(options)
 				options = Main.Utilities.Settings({
 					Title = "Preview Tab"
 				}, options or {})
@@ -343,7 +343,7 @@ function Tone:Window(options)
 				-- Rendering
 				do
 					Tab.CurrentTabLabel = Main.Utilities.NewObj("TextLabel", {
-						Parent = _Tone.TabArea,
+						Parent = _Azuma.TabArea,
 						BorderSizePixel = 0,
 						Visible = false,
 						TextXAlignment = Enum.TextXAlignment.Left,
@@ -360,7 +360,7 @@ function Tone:Window(options)
 					})
 
 					Tab.Tab = Main.Utilities.NewObj("ScrollingFrame", {
-						Parent = _Tone.TabArea,
+						Parent = _Azuma.TabArea,
 						Visible = false,
 						BorderSizePixel = 0,
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -383,7 +383,7 @@ function Tone:Window(options)
 					})
 
 					Tab.TabButton = Main.Utilities.NewObj("TextLabel", {
-						Parent = _Tone.TabButtons,
+						Parent = _Azuma.TabButtons,
 						BorderSizePixel = 0,
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						TextSize = 13,
@@ -433,15 +433,15 @@ function Tone:Window(options)
 
 							ActivateTab = function(self)
 								if not Tab.Active then
-									if _Tone.CurrentTab and _Tone.CurrentTab.Logic and _Tone.CurrentTab.Logic.Methods then
-										_Tone.CurrentTab.Logic.Methods.DeactivateTab()
+									if _Azuma.CurrentTab and _Azuma.CurrentTab.Logic and _Azuma.CurrentTab.Logic.Methods then
+										_Azuma.CurrentTab.Logic.Methods.DeactivateTab()
 									end
 									Tab.Active = true
 									Main.Utilities.Tween(Tab.TabButton, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.8, Main.TweenTypes.Click)
 									Main.Utilities.Tween(Tab.TabButtonActivated, {Size = UDim2.new(0, 7, 1, 0)}, 0.8, Main.TweenTypes.Click)
 									Tab.Tab.Visible = true
 									Tab.CurrentTabLabel.Visible = true
-									_Tone.CurrentTab = Tab
+									_Azuma.CurrentTab = Tab
 								end
 							end
 						},
@@ -475,7 +475,7 @@ function Tone:Window(options)
 							Tab.TabButton.MouseLeave:Connect(Tab.Logic.Events.MouseLeave)
 							Main.Services.UIS.InputBegan:Connect(Tab.Logic.Events.InputBegan)
 
-							if not _Tone.CurrentTab then
+							if not _Azuma.CurrentTab then
 								Tab.Logic.Methods:ActivateTab()
 							end
 						end
@@ -1311,108 +1311,112 @@ function Tone:Window(options)
 											FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 											TextColor3 = Color3.fromRGB(255, 255, 255),
 											Size = UDim2.new(1, 0, 0, 20),
-											BorderColor3 = Color3.fromRGB(0, 0, 0),
 											Text = Title,
 											Name = "Item",
 										})
 
-										Dropdown.Items[Id].instance.ItemCorner = Main.Utilities.NewObj("UICorner", {
+										Main.Utilities.NewObj("UICorner", {
 											Parent = Dropdown.Items[Id].instance.Item,
 											CornerRadius = UDim.new(0, 4),
 										})
 
-										Dropdown.Items[Id].instance.ItemPadding = Main.Utilities.NewObj("UIPadding", {
+										Main.Utilities.NewObj("UIPadding", {
 											Parent = Dropdown.Items[Id].instance.Item,
 											PaddingLeft = UDim.new(0, 5),
 										})
 
-										-- Logic
 										local function setHoverAppearance()
-											if not Item.MouseDown then
-												if options.Selectmode then
-													if Item.Selected then
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-													else
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
-													end
+											if Item.MouseDown then return end
+
+											local bgColor, textColor
+											if options.Selectmode then
+												if Item.Selected then
+													bgColor = Color3.fromRGB(255, 255, 255)
+													textColor = Color3.fromRGB(0, 0, 0)
 												else
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(30, 30, 30)
+													textColor = Color3.fromRGB(255, 255, 255)
 												end
+											else
+												bgColor = Color3.fromRGB(30, 30, 30)
+												textColor = Color3.fromRGB(255, 255, 255)
 											end
+
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = bgColor}, 0.2, Main.TweenTypes.Hover)
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = textColor}, 0.2, Main.TweenTypes.Hover)
 										end
 
 										local function resetAppearance()
-											if Item.MouseDown then
-												return
-											end
+											if Item.MouseDown then return end
 
+											local bgColor, textColor
 											if options.Selectmode then
 												if Item.Selected then
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Hover)
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(230, 230, 230)
+													textColor = Color3.fromRGB(0, 0, 0)
 												else
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Hover)
+													bgColor = Color3.fromRGB(19, 19, 19)
+													textColor = Color3.fromRGB(255, 255, 255)
 												end
 											else
-												Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2, Main.TweenTypes.Hover)
+												bgColor = Color3.fromRGB(19, 19, 19)
+												textColor = Color3.fromRGB(255, 255, 255)
 											end
+
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = bgColor}, 0.2, Main.TweenTypes.Hover)
+											Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = textColor}, 0.2, Main.TweenTypes.Hover)
 										end
 
-										-- Main Logic
-										Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
-											Item.Hover = true
-											Dropdown.HoveringItem = true
-											setHoverAppearance()
-										end)
+										local function connectEvents()
+											Dropdown.Items[Id].instance.Item.MouseEnter:Connect(function()
+												Item.Hover = true
+												Dropdown.HoveringItem = true
+												setHoverAppearance()
+											end)
 
-										Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
-											Item.Hover = false
-											Dropdown.HoveringItem = false
-											resetAppearance()
-										end)
-
-										Main.Services.UIS.InputBegan:Connect(function(input)
-											if Dropdown.Items[Id] == nil then return end
-
-											if (input.UserInputType == Enum.UserInputType.MouseButton1 and Item.Hover) or (input.UserInputType == Enum.UserInputType.Touch and Item.Hover) then
-												Item.MouseDown = true
-
-												if options.Selectmode then
-													Item.Selected = not Item.Selected
-													Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
-													if Item.Hover then
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2, Main.TweenTypes.Click)
-													else
-														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
-													end
-												else
-													for i, v in pairs(Dropdown.Items) do
-														if v.instance then
-															v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
-														end
-													end
-													Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
-													Dropdown.SelectedItems = { [Id] = Title }
-													Dropdown.Logic.Methods.Toggle()
-												end
-												Callback(Id, Title)
-											end
-										end)
-
-										Main.Services.UIS.InputEnded:Connect(function(input)
-											if Dropdown.Items[Id] == nil then return end
-
-											if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-												Item.MouseDown = false
+											Dropdown.Items[Id].instance.Item.MouseLeave:Connect(function()
+												Item.Hover = false
+												Dropdown.HoveringItem = false
 												resetAppearance()
-											end
-										end)
+											end)
 
-										Instances = Dropdown.Items[Id]
+											Main.Services.UIS.InputBegan:Connect(function(input)
+												if Dropdown.Items[Id] == nil then return end
+
+												if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Item.Hover then
+													Item.MouseDown = true
+
+													if options.Selectmode then
+														Item.Selected = not Item.Selected
+														Dropdown.SelectedItems[Id] = Item.Selected and Title or nil
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {TextColor3 = Color3.fromRGB(0, 0, 0)}, 0.2, Main.TweenTypes.Hover)
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Item.Hover and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(230, 230, 230)}, 0.2, Main.TweenTypes.Click)
+													else
+														for _, v in pairs(Dropdown.Items) do
+															if v.instance then
+																v.instance.Item.BackgroundColor3 = Color3.fromRGB(19, 19, 19)
+															end
+														end
+														Main.Utilities.Tween(Dropdown.Items[Id].instance.Item, {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}, 0.2, Main.TweenTypes.Click)
+														Dropdown.SelectedItems = { [Id] = Title }
+														Dropdown.Logic.Methods.Toggle()
+													end
+													Callback(Id, Title)
+												end
+											end)
+
+											Main.Services.UIS.InputEnded:Connect(function(input)
+												if Dropdown.Items[Id] == nil then return end
+
+												if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+													Item.MouseDown = false
+													resetAppearance()
+												end
+											end)
+										end
+
+										connectEvents()
+										Dropdown.Items[Id].Callback = Callback 
 									end,
 
 									GetSelectedItems = function(self)
@@ -1424,17 +1428,13 @@ function Tone:Window(options)
 											end
 										end
 
-										if selectedText == "" then
-											return "No items selected"
-										else
-											return selectedText:sub(1, -3)
-										end
+										return selectedText == "" and "No items selected" or selectedText:sub(1, -3)
 									end,
 
-									Remove = function(self, id)
-										if Dropdown.Items[id] ~= nil then
-											if Dropdown.Items[id].instance ~= nil then
-												for i, v in pairs(Dropdown.Items[id].instance) do
+									Remove = function(id, self)
+										if Dropdown.Items[id] then
+											if Dropdown.Items[id].instance then
+												for _, v in pairs(Dropdown.Items[id].instance) do
 													v:Destroy()
 												end
 											end
@@ -1443,8 +1443,8 @@ function Tone:Window(options)
 									end,
 
 									Clear = function(self)
-										for i, v in pairs(Dropdown.Items) do
-											Dropdown:Remove(i)
+										for i in pairs(Dropdown.Items) do
+											Dropdown.Logic.Methods.Remove(i)
 										end
 									end,
 
@@ -1457,10 +1457,8 @@ function Tone:Window(options)
 											end)
 										else
 											local count = 0
-											for i, v in pairs(Dropdown.Items) do
-												if v ~= nil then
-													count += 1
-												end
+											for _ in pairs(Dropdown.Items) do
+												count += 1
 											end
 
 											Dropdown.DropdownItems.Visible = true
@@ -1468,13 +1466,20 @@ function Tone:Window(options)
 										end
 									end,
 
-									Refresh = function()
-										for id, _ in pairs(Dropdown.Items) do
-											self:Remove(id)
+									Refresh = function(options, self)
+										local oldCallback
+										if Dropdown.SelectedItems then
+											for id, item in pairs(Dropdown.SelectedItems) do
+												if Dropdown.Items[id] then
+													oldCallback = Dropdown.Items[id].Callback
+													break
+												end
+											end
 										end
 
-										for id, value in pairs(Dropdown.Items) do
-											self:Add(id, value)
+										Dropdown.Logic.Methods.Clear()
+										for _, object in pairs(options) do
+											Dropdown:Add(object, object.Name, oldCallback)
 										end
 									end
 								},
@@ -1527,8 +1532,12 @@ function Tone:Window(options)
 								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
 							end
 
-							function Dropdown:Refresh()
-								Dropdown.Logic.Methods.Refresh()
+							function Dropdown:Refresh(options)
+								Dropdown.Logic.Methods.Refresh(options)
+							end
+							
+							function Dropdown:Clear()
+								Dropdown.Logic.Methods.Clear()
 							end
 
 							return Dropdown
@@ -2000,7 +2009,7 @@ function Tone:Window(options)
 		-- Rendering
 		do
 			Actions.Frame = Main.Utilities.NewObj("Frame", {
-				Parent = _Tone.Gui,
+				Parent = _Azuma.Gui,
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 				AnchorPoint = Vector2.new(0.5, 0),
@@ -2102,8 +2111,8 @@ function Tone:Window(options)
 					if Actions.Open then
 						Actions.Close = true
 						Actions.Open = false
-						Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
-							for _, child in ipairs(_Tone.MainFrame:GetChildren()) do
+						Main.Utilities.Tween(_Azuma.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
+							for _, child in ipairs(_Azuma.MainFrame:GetChildren()) do
 								if not (child:IsA("UICorner") or child:IsA("UIPadding") or child:IsA("UIListLayout")) then
 									if child.Name ~= "Shadow" then
 										child.Visible = false
@@ -2111,21 +2120,21 @@ function Tone:Window(options)
 								end
 							end
 
-							_Tone.MainFrame.AnchorPoint = Vector2.new(0.5, 1)
-							_Tone.MainFrame.Position = UDim2.new(0.5, _Tone.MainFrame.Position.X.Offset, 0.5, _Tone.MainFrame.Position.Y.Offset + (_Tone.MainFrame.Size.Y.Offset / 2))
-							_Tone.TransitionFrame.AnchorPoint = Vector2.new(0, 1)
-							_Tone.TransitionFrame.Position = UDim2.new(0, 0, 1, 0)
+							_Azuma.MainFrame.AnchorPoint = Vector2.new(0.5, 1)
+							_Azuma.MainFrame.Position = UDim2.new(0.5, _Azuma.MainFrame.Position.X.Offset, 0.5, _Azuma.MainFrame.Position.Y.Offset + (_Azuma.MainFrame.Size.Y.Offset / 2))
+							_Azuma.TransitionFrame.AnchorPoint = Vector2.new(0, 1)
+							_Azuma.TransitionFrame.Position = UDim2.new(0, 0, 1, 0)
 
 							task.wait(0.1)
 
-							Main.Utilities.Tween(_Tone.MainFrame, {Size = UDim2.new(0, _Tone.MainFrame.Size.X.Offset, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+							Main.Utilities.Tween(_Azuma.MainFrame, {Size = UDim2.new(0, _Azuma.MainFrame.Size.X.Offset, 0, 0)}, 0.8, Main.TweenTypes.Drag)
 
 							coroutine.wrap(function()
 								task.wait(0.51)
-								_Tone.ShadowImage.Visible = false
+								_Azuma.ShadowImage.Visible = false
 							end)()
 
-							Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+							Main.Utilities.Tween(_Azuma.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
 						end))
 					end
 				end,
@@ -2133,17 +2142,17 @@ function Tone:Window(options)
 				OpenFrame = function()
 					coroutine.wrap(function()
 						task.wait(0.29)
-						_Tone.ShadowImage.Visible = true
-						_Tone.ShadowFrame.Visible = true
+						_Azuma.ShadowImage.Visible = true
+						_Azuma.ShadowFrame.Visible = true
 					end)()
-					Main.Utilities.Tween(_Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag, function()
+					Main.Utilities.Tween(_Azuma.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag, function()
 						if Actions.Close then
 							Actions.Close = false
 							Actions.Open = true
-							Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
-								Main.Utilities.Tween(_Tone.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag)
+							Main.Utilities.Tween(_Azuma.TransitionFrame, {Size = UDim2.new(1, 0, 1, 0)}, 0.8, Main.TweenTypes.Drag, coroutine.wrap(function()
+								Main.Utilities.Tween(_Azuma.MainFrame, {Size = Main.Vars.DynamicSize}, 0.8, Main.TweenTypes.Drag)
 
-								for _, child in ipairs(_Tone.MainFrame:GetChildren()) do
+								for _, child in ipairs(_Azuma.MainFrame:GetChildren()) do
 									if not (child:IsA("UICorner") or child:IsA("UIPadding") or child:IsA("UIListLayout")) then
 										child.Visible = true
 									end
@@ -2151,12 +2160,12 @@ function Tone:Window(options)
 
 								task.wait(0.1)
 
-								_Tone.TransitionFrame.AnchorPoint = Vector2.new(0, 0)
-								_Tone.TransitionFrame.Position = UDim2.new(0, 0, 0, 0)
-								_Tone.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-								_Tone.MainFrame.Position = UDim2.new(0.5, _Tone.MainFrame.Position.X.Offset, 0.5, _Tone.MainFrame.Position.Y.Offset - (_Tone.MainFrame.Size.Y.Offset / 2))
+								_Azuma.TransitionFrame.AnchorPoint = Vector2.new(0, 0)
+								_Azuma.TransitionFrame.Position = UDim2.new(0, 0, 0, 0)
+								_Azuma.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+								_Azuma.MainFrame.Position = UDim2.new(0.5, _Azuma.MainFrame.Position.X.Offset, 0.5, _Azuma.MainFrame.Position.Y.Offset - (_Azuma.MainFrame.Size.Y.Offset / 2))
 
-								Main.Utilities.Tween(_Tone.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
+								Main.Utilities.Tween(_Azuma.TransitionFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.8, Main.TweenTypes.Drag)
 							end))
 						end
 					end)
@@ -2174,9 +2183,9 @@ function Tone:Window(options)
 							setclipboard(options.YoutubeLink)
 						end
 					elseif input.UserInputType == Enum.UserInputType.Keyboard then
-						if input.KeyCode == Enum.KeyCode[_Tone.UIBind] and Actions.Open then
+						if input.KeyCode == Enum.KeyCode[_Azuma.UIBind] and Actions.Open then
 							Actions.Logic.Methods.CloseFrame()
-						elseif input.KeyCode == Enum.KeyCode[_Tone.UIBind] and Actions.Close then
+						elseif input.KeyCode == Enum.KeyCode[_Azuma.UIBind] and Actions.Close then
 							Actions.Logic.Methods.OpenFrame()
 						end
 					end
@@ -2233,7 +2242,7 @@ function Tone:Window(options)
 			-- Rendering
 			do
 				Base.NotificationFrame = Main.Utilities.NewObj("Frame", {
-					Parent = _Tone.NotificationsFrame,
+					Parent = _Azuma.NotificationsFrame,
 					BorderSizePixel = 0,
 					BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 					Size = UDim2.new(1, 0, 0, 60),
@@ -2369,7 +2378,7 @@ function Tone:Window(options)
 			return Base	
 		end
 
-		function Tone:Notify(options)
+		function Azuma:Notify(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Notification",
 				Description = "Preview Description",
@@ -2381,7 +2390,7 @@ function Tone:Window(options)
 			return Notify
 		end
 
-		function Tone:Warn(options)
+		function Azuma:Warn(options)
 			options = Main.Utilities.Settings({
 				Title = "Preview Warning",
 				Description = "Preview Warning",
@@ -2393,10 +2402,12 @@ function Tone:Window(options)
 			return Warn
 		end
 	end
-	Main.Utilities.Dragify(_Tone.MainFrame)
-	Main.Utilities.Cursor(_Tone.MainFrame, 83884515509675)
-	return _Tone
+	Main.Utilities.Dragify(_Azuma.MainFrame)
+	Main.Utilities.Cursor(_Azuma.MainFrame, 83884515509675)
+	return _Azuma
 end
+
+return Azuma
 
 local LoadTime = math.floor((tick() - startTime) * 1000)
 
