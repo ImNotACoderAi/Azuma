@@ -3,7 +3,7 @@ This documentation is for the stable release of Tone UI Library. "A better Delmo
 
 ## Booting the Library
 ```lua
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/AzumaBranch/Main.lua",true))()
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/refs/heads/AzumaBranch/Main.lua",true))()
 ```
 
 # IMPORTANT
