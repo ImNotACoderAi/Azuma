@@ -15,6 +15,7 @@ local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACod
 local Window = Tone:Window({
     Title = "Title of the library",
     Bind = "RightShift",
+    NavigationPosition = "Right",
     DiscordLink = "Discord.gg/YourInviteLink",
     YoutubeLink = "https://Youtube.com/YourChannel"
 })
@@ -22,6 +23,7 @@ local Window = Tone:Window({
 --[[
 Title = <string> - The name of the UI.
 DiscordLink = <string> - The Bind to close and open the UI.
+NavigationPosition = <string> - The position of the Navigation for now only takes Top, And Right.
 DiscordLink = <string> - The Discord invite link to be displayed.
 YoutubeLink = <string> - The YouTube channel link to be displayed.
 ]]
