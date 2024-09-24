@@ -154,6 +154,7 @@ function Tone:Window(options)
 	options = Main.Utilities.Settings({
 		Title = "Tone UI Library",
 		Bind = "RightShift",
+		NavigationPosition = "Right",
 		DiscordLink = "Not Set",
 		YoutubeLink = "Not Set",
 	}, options or {})
@@ -1410,7 +1411,7 @@ function Tone:Window(options)
 												resetAppearance()
 											end
 										end)
-										
+
 										Instances = Dropdown.Items[Id]
 									end,
 
@@ -1466,12 +1467,12 @@ function Tone:Window(options)
 											Main.Utilities.Tween(Dropdown.Dropdown, {Size = UDim2.new(1, 0, 0, 7 + (count * 20) + 1)}, 0.4, Main.TweenTypes.Click)
 										end
 									end,
-									
+
 									Refresh = function()
 										for id, _ in pairs(Dropdown.Items) do
 											self:Remove(id)
 										end
-										
+
 										for id, value in pairs(Dropdown.Items) do
 											self:Add(id, value)
 										end
@@ -1525,7 +1526,7 @@ function Tone:Window(options)
 							function Dropdown:Add(Id, Title, Callback) 
 								Dropdown.Logic.Methods.Add(Id, Title, Callback)	
 							end
-							
+
 							function Dropdown:Refresh()
 								Dropdown.Logic.Methods.Refresh()
 							end
@@ -1710,7 +1711,6 @@ function Tone:Window(options)
 										ColorPicker.CurrentColor = finalColor
 										ColorPicker.CurrentDarkness = darknessPercentage
 
-										-- Update the position of color and darkness indicators (if you have them)
 										if ColorPicker.ColorIndicator then
 											ColorPicker.ColorIndicator.Position = UDim2.new(colorPercentage, 0, 0.5, 0)
 										end
@@ -1729,7 +1729,6 @@ function Tone:Window(options)
 										ColorPicker.CurrentDarkness = options.DefaultDarkness
 										ColorPicker.Color.BackgroundColor3 = options.DefaultColor:Lerp(Color3.new(0, 0, 0), options.DefaultDarkness)
 
-										-- Set initial positions of color and darkness indicators (if you have them)
 										if ColorPicker.ColorIndicator then
 											ColorPicker.ColorIndicator.Position = UDim2.new(h, 0, 0.5, 0)
 										end
@@ -1751,10 +1750,16 @@ function Tone:Window(options)
 								Events = {
 									MouseEnter = function()
 										ColorPicker.Hover = true
+										if not ColorPicker.ChangingColor or ColorPicker.ChangingDarkness then
+											Main.Utilities.Tween(ColorPicker.Label, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+										end
 									end,
 
 									MouseLeave = function()
 										ColorPicker.Hover = false
+										if not ColorPicker.ChangingColor or ColorPicker.ChangingDarkness then
+											Main.Utilities.Tween(ColorPicker.Label, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
+										end
 									end,
 
 									MouseEnterColor = function()
@@ -1774,7 +1779,7 @@ function Tone:Window(options)
 									end,
 
 									InputBegan = function(input)
-										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+										if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 											if ColorPicker.Hover and not (ColorPicker.HoverDarkness or ColorPicker.HoverColor) then
 												ColorPicker.Logic.Methods.toggleColorPicker()
 											elseif ColorPicker.State then
@@ -1795,6 +1800,7 @@ function Tone:Window(options)
 													end)
 												end
 											end
+											Main.Utilities.Tween(ColorPicker.Label, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Hover)
 										end
 									end,
 
@@ -1807,6 +1813,12 @@ function Tone:Window(options)
 												ColorPicker.Connection:Disconnect()
 												ColorPicker.Connection = nil
 												Main.Vars.stopforce = false
+											end
+
+											if ColorPicker.Hover then
+												Main.Utilities.Tween(ColorPicker.Label, {TextColor3 = Color3.fromRGB(230, 230, 230)}, 0.4, Main.TweenTypes.Hover)
+											else
+												Main.Utilities.Tween(ColorPicker.Label, {TextColor3 = Color3.fromRGB(200, 200, 200)}, 0.4, Main.TweenTypes.Hover)
 											end
 										end
 									end
@@ -1824,9 +1836,9 @@ function Tone:Window(options)
 									Main.Services.UIS.InputEnded:Connect(ColorPicker.Logic.Events.InputEnded)
 
 									ColorPicker.Logic.Methods.setDefaultColor(options)
-									ColorPicker.State = true
-									ColorPicker.Label.Size = UDim2.new(1, 0, 0, 65)
-								end
+									ColorPicker.State = false
+									ColorPicker.Label.Size = UDim2.new(1, 0, 0, 30)
+								end,
 							}
 
 							ColorPicker.Logic.Setup({
@@ -1836,6 +1848,138 @@ function Tone:Window(options)
 
 							return ColorPicker
 						end
+
+						function Tab:TextBox(options)
+							options = Main.Utilities.Settings({
+								Title = "Preview Textbox",
+								Callback = function(v) print(v) end
+							}, options or {})
+
+							local TextBox = {
+								Hover = false,
+								InputHover = false,
+								MouseDown = false,
+								State = false
+							}
+
+							do
+								TextBox.MainLabel = Main.Utilities.NewObj("TextLabel", {
+									Parent = Tab.Tab,
+									BorderSizePixel = 0,
+									TextXAlignment = Enum.TextXAlignment.Left,
+									BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+									TextSize = 12,
+									FontFace = Font.new([[rbxasset://fonts/families/Roboto.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									TextColor3 = Color3.fromRGB(201, 201, 201),
+									BackgroundTransparency = 1,
+									AnchorPoint = Vector2.new(1, 0),
+									Size = UDim2.new(1, 0, 0, 30),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = options.Title,
+									LayoutOrder = -1,
+									Name = [[TextBox]],
+									Position = UDim2.new(1, 0, 0, 0)
+								});
+
+								TextBox.InputField = Main.Utilities.NewObj("TextBox", {
+									Parent = TextBox.MainLabel,
+									CursorPosition = -1,
+									TextColor3 = Color3.fromRGB(200, 200, 200),
+									PlaceholderColor3 = Color3.fromRGB(255, 255, 255),
+									BorderSizePixel = 0,
+									TextSize = 14,
+									BackgroundColor3 = Color3.fromRGB(19, 19, 19),
+									FontFace = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+									AnchorPoint = Vector2.new(1, 0.5),
+									ClipsDescendants = true,
+									PlaceholderText = [[...]],
+									Size = UDim2.new(0, 20, 0, 20),
+									Position = UDim2.new(1, -2, 0.5, 0),
+									BorderColor3 = Color3.fromRGB(0, 0, 0),
+									Text = [[]]
+								});
+
+								TextBox.InputCorner = Main.Utilities.NewObj("UICorner", {
+									Parent = TextBox.InputField,
+									CornerRadius = UDim.new(0, 4)
+								});
+							end
+
+							TextBox.Logic = {
+								Methods = {
+									GetInputField = function()
+										return TextBox.InputField.Text
+									end,
+
+									SetInputField = function(Text)
+										TextBox.InputField.Text = Text
+									end
+								},
+
+								Events = {
+									HoverState = function(Element, isHovering)
+										local color = isHovering and Color3.fromRGB(230, 230, 230) or Color3.fromRGB(200, 200, 200)
+										if Element == TextBox.MainLabel then
+											TextBox.Hover = isHovering
+											Main.Utilities.Tween(TextBox.MainLabel, {TextColor3 = color}, 0.4, Main.TweenTypes.Hover)
+										elseif Element == TextBox.InputField then
+											TextBox.InputHover = isHovering
+											Main.Utilities.Tween(TextBox.InputField, {TextColor3 = color}, 0.4, Main.TweenTypes.Hover)
+										end
+									end,
+
+									InputBegan = function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and TextBox.InputHover then
+											TextBox.MouseDown = true
+											TextBox.State = true
+											Main.Utilities.Tween(TextBox.InputField, {Size = UDim2.new(0, 120, 0, 20)}, 0.4, Main.TweenTypes.Click)
+											TextBox.InputField:CaptureFocus()
+										end
+									end,
+
+									InputEnded = function(input)
+										if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and TextBox.InputHover then
+											TextBox.MouseDown = false
+										end
+
+										if input.KeyCode == Enum.KeyCode.Return and TextBox.State then
+											TextBox.State = false
+											Main.Utilities.Tween(TextBox.InputField, {Size = UDim2.new(0, 20, 0, 20)}, 0.4, Main.TweenTypes.Click)
+											TextBox.InputField:ReleaseFocus()
+											options.Callback(TextBox.InputField.Text)
+										end
+									end,
+
+									FocusLost = function()
+										if TextBox.State then
+											TextBox.State = false
+											Main.Utilities.Tween(TextBox.InputField, {Size = UDim2.new(0, 20, 0, 20)}, 0.4, Main.TweenTypes.Click)
+											options.Callback(TextBox.InputField.Text)
+										end
+									end
+								},
+
+								Setup = function(options)
+									TextBox.MainLabel.MouseEnter:Connect(function() TextBox.Logic.Events.HoverState(TextBox.MainLabel, true) end)
+									TextBox.MainLabel.MouseLeave:Connect(function() TextBox.Logic.Events.HoverState(TextBox.MainLabel, false) end)
+
+									TextBox.InputField.MouseEnter:Connect(function() TextBox.Logic.Events.HoverState(TextBox.InputField, true) end)
+									TextBox.InputField.MouseLeave:Connect(function() TextBox.Logic.Events.HoverState(TextBox.InputField, false) end)
+
+									TextBox.MainLabel.TouchTap:Connect(function() TextBox.Logic.Events.HoverState(TextBox.MainLabel, true) end)
+									TextBox.InputField.TouchTap:Connect(function() TextBox.Logic.Events.HoverState(TextBox.InputField, true) end)
+
+									Main.Services.UIS.InputBegan:Connect(TextBox.Logic.Events.InputBegan)
+									Main.Services.UIS.InputEnded:Connect(TextBox.Logic.Events.InputEnded)
+
+									TextBox.InputField.FocusLost:Connect(TextBox.Logic.Events.FocusLost)  -- Handle focus loss
+								end,
+							}
+
+							TextBox.Logic.Setup(options)
+
+							return TextBox
+						end	
 					end
 				end	
 				return Tab	
@@ -1860,10 +2004,13 @@ function Tone:Window(options)
 				BorderSizePixel = 0,
 				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
 				AnchorPoint = Vector2.new(0.5, 0),
-				Size = UDim2.new(0, 115, 0, 30),
-				Position = UDim2.new(0.5, 0, 0, 5),
 				BorderColor3 = Color3.fromRGB(0, 0, 0),
 				Name = "Actions"
+			})
+
+			Actions.UICorner = Main.Utilities.NewObj("UICorner", {
+				Parent = Actions.Frame,
+				CornerRadius = UDim.new(0, 6)
 			})
 
 			Actions.UICorner = Main.Utilities.NewObj("UICorner", {
@@ -1938,6 +2085,7 @@ function Tone:Window(options)
 				Position = UDim2.new(0.5, -13, 0.5, 0)
 			})
 		end
+		
 		Actions.Logic = {
 			Methods = {
 				SetHoverState = function(icon, hoverStateVar)
@@ -2032,7 +2180,35 @@ function Tone:Window(options)
 							Actions.Logic.Methods.OpenFrame()
 						end
 					end
+				end,
+				
+				SetupNavigationPosition = function(navigationPosition)
+					if navigationPosition == "Top" then
+						Actions.Frame.AnchorPoint = Vector2.new(0.5, 0);
+						Actions.Frame.Position = UDim2.new(0.5, 0, 0, 5)
+						Actions.Frame.Size = UDim2.new(0, 115, 0, 30)
+
+						Actions.DiscordIcon.AnchorPoint = Vector2.new(1, 0.5);
+						Actions.YoutubeIcon.AnchorPoint = Vector2.new(0, 0.5);
+						Actions.YoutubeIcon.Position = UDim2.new(0, 5, 0.5, 0)
+						Actions.DiscordIcon.Position = UDim2.new(1, -5, 0.5, 0)
+						Actions.OpenIcon.Position = UDim2.new(0.5, 13, 0.5, 0)
+						Actions.ExitIcon.Position = UDim2.new(0.5, -13, 0.5, 0)
+					elseif navigationPosition == "Right" then
+						Actions.Frame.AnchorPoint = Vector2.new(1, 0.5);
+						Actions.Frame.Position = UDim2.new(1, -5, 0.5, 0)
+						Actions.Frame.Size = UDim2.new(0, 30, 0, 115)
+						
+						Actions.DiscordIcon.AnchorPoint = Vector2.new(0.5, 0.5);
+						Actions.YoutubeIcon.AnchorPoint = Vector2.new(0.5, 0.5);
+						Actions.YoutubeIcon.Position = UDim2.new(0.5, 0, 0.5, 41)
+						Actions.DiscordIcon.Position = UDim2.new(0.5, 0, 0.5, -41)
+						Actions.OpenIcon.Position = UDim2.new(0.5, 0, 0.5, 13)
+						Actions.ExitIcon.Position = UDim2.new(0.5, 0, 0.5, -13)
+					end
 				end
+
+				
 			},
 
 			Setup = function()
@@ -2042,6 +2218,8 @@ function Tone:Window(options)
 				Actions.Logic.Methods.SetHoverState(Actions.YoutubeIcon, "YoutubeHover")
 
 				Main.Services.UIS.InputBegan:Connect(Actions.Logic.Methods.HandleInput)
+				
+				Actions.Logic.Methods.SetupNavigationPosition(options.NavigationPosition)
 			end
 		}
 
@@ -2049,7 +2227,6 @@ function Tone:Window(options)
 	end	
 	-- Notifications
 	do
-		-- Function to build a notification or warning frame
 		local function NotificationBase(Options, frameName, iconId)
 			local Base = {}
 
