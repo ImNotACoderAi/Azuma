@@ -1,9 +1,9 @@
-# Tone UI Library
+# Azuma UI Library
 This documentation is for the stable release of Tone UI Library. "A better Delmo"
 
 ## Booting the Library
 ```lua
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/TONE/main/Main.lua",true))()
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/AzumaBranch/Main.lua",true))()
 ```
 
 # IMPORTANT
@@ -12,7 +12,7 @@ local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACod
 
 ## Creating a Window
 ```lua
-local Window = Tone:Window({
+local Window = Azuma:Window({
     Title = "Title of the library",
     Bind = "RightShift",
     NavigationPosition = "Right",
@@ -163,10 +163,10 @@ callback = <function> - The function called when the option is selected.
 
 ## Creating a Color Picker
 ```lua
-local Color Picker = Tab:ColorPicker({
-    Title = "ColorPicker",
+local ColorPicker = Tab:ColorPicker({
+    Title = "Color Picker",
     DefaultColor = Color3.fromRGB(255, 255, 255)
-    DefaultDarkness = 0 - 1
+    DefaultDarkness = 0
     Callback = function(Value)
         print(Value)
     end    
@@ -175,13 +175,29 @@ local Color Picker = Tab:ColorPicker({
 --[[
 Title = <string> - The name of the Color Picker.
 DefaultColor = Color3.fromRGB(<number>) - The default Color of the Color Picker.
+DefaultDarkness = 0/100 - The default Color of the Color Picker.
+Callback = <function> - The function of the Color Picker.
+]]
+```
+
+## Creating a Text Box
+```lua
+local TextBox = Tab:TextBox({
+    Title = "Text Box",
+    Callback = function(Text)
+        print(Text)
+    end    
+})
+
+--[[
+Title = <string> - The name of the Color Picker.
 Callback = <function> - The function of the Color Picker.
 ]]
 ```
 
 ## Notifying the user
 ```lua
-Tone:Notify({
+Azuma:Notify({
     Title = "Notification Title",
     Description = "This is a notification",
     Duration = 5
@@ -192,78 +208,4 @@ Title = <string> - The title of the notification.
 Description = <string> - The content of the notification.
 Duration = <number> - The duration of the notification in seconds.
 ]]
-```
-
-## Full Example
-```lua
-local Tone = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/TONE/main/Main.lua",true))()
-
-local Window = Tone:Window({
-    Title = "Tone Example Hub",
-    Discord = "Discord.gg/ToneHub",
-    Youtube = "https://Youtube.com/ToneHub"
-})
-
-local MainTab = Window:Tab({
-    Title = "Main Features"
-})
-
-MainTab:Label({
-    Text = "Welcome to Tone Example Hub!"
-})
-
-MainTab:Warning({
-    Text = "Use these features at your own risk!"
-})
-
-MainTab:Button({
-    Title = "Destroy GUI",
-    Callback = function()
-        -- Add code to destroy the GUI
-    end
-})
-
-MainTab:Toggle({
-    Title = "Toggle Feature",
-    Callback = function(Value)
-        print("Toggle is now:", Value)
-    end
-})
-
-MainTab:Slider({
-    Title = "Walkspeed",
-    Min = 16,
-    Max = 100,
-    Default = 16,
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-    end
-})
-
-MainTab:Bind({
-    Title = "Toggle Fly",
-    DefaultBind = "F",
-    Callback = function()
-        print("Fly toggled!")
-    end
-})
-
-local TeleportDropdown = MainTab:Dropdown({
-    Title = "Teleport",
-    Selectmode = true
-})
-
-TeleportDropdown:Add(1, "Spawn", function(Selected)
-    print("Teleporting to Spawn")
-end)
-
-TeleportDropdown:Add(2, "Shop", function(Selected)
-    print("Teleporting to Shop")
-end)
-
-Tone:Notify({
-    Title = "Script Loaded",
-    Description = "Tone Example Hub is ready!",
-    Duration = 3
-})
 ```
