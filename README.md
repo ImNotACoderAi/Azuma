@@ -205,3 +205,9 @@ Description = <string> - The content of the notification.
 Duration = <number> - The duration of the notification in seconds.
 ]]
 ```
+
+## Finishing up
+After finishing your UI you simply want to call
+```lua
+AzumaLib:Init()
+```
