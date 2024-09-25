@@ -1535,7 +1535,7 @@ function Azuma:Window(options)
 							function Dropdown:Refresh(options)
 								Dropdown.Logic.Methods.Refresh(options)
 							end
-							
+
 							function Dropdown:Clear()
 								Dropdown.Logic.Methods.Clear()
 							end
@@ -2094,7 +2094,7 @@ function Azuma:Window(options)
 				Position = UDim2.new(0.5, -13, 0.5, 0)
 			})
 		end
-		
+
 		Actions.Logic = {
 			Methods = {
 				SetHoverState = function(icon, hoverStateVar)
@@ -2190,7 +2190,7 @@ function Azuma:Window(options)
 						end
 					end
 				end,
-				
+
 				SetupNavigationPosition = function(navigationPosition)
 					if navigationPosition == "Top" then
 						Actions.Frame.AnchorPoint = Vector2.new(0.5, 0);
@@ -2207,7 +2207,7 @@ function Azuma:Window(options)
 						Actions.Frame.AnchorPoint = Vector2.new(1, 0.5);
 						Actions.Frame.Position = UDim2.new(1, -5, 0.5, 0)
 						Actions.Frame.Size = UDim2.new(0, 30, 0, 115)
-						
+
 						Actions.DiscordIcon.AnchorPoint = Vector2.new(0.5, 0.5);
 						Actions.YoutubeIcon.AnchorPoint = Vector2.new(0.5, 0.5);
 						Actions.YoutubeIcon.Position = UDim2.new(0.5, 0, 0.5, 41)
@@ -2217,7 +2217,7 @@ function Azuma:Window(options)
 					end
 				end
 
-				
+
 			},
 
 			Setup = function()
@@ -2227,163 +2227,163 @@ function Azuma:Window(options)
 				Actions.Logic.Methods.SetHoverState(Actions.YoutubeIcon, "YoutubeHover")
 
 				Main.Services.UIS.InputBegan:Connect(Actions.Logic.Methods.HandleInput)
-				
+
 				Actions.Logic.Methods.SetupNavigationPosition(options.NavigationPosition)
 			end
 		}
 
 		Actions.Logic.Setup()
 	end	
-	-- Notifications
-	do
-		function _NotificationBase(Options, frameName, iconId)
-			local Base = {}
-
-			-- Rendering
-			do
-				Base.NotificationFrame = Main.Utilities.NewObj("Frame", {
-					Parent = _Azuma.NotificationsFrame,
-					BorderSizePixel = 0,
-					BackgroundColor3 = Color3.fromRGB(13, 13, 13),
-					Size = UDim2.new(1, 0, 0, 60),
-					BorderColor3 = Color3.fromRGB(0, 0, 0),
-					Name = frameName
-				})
-
-				Base.NotificationCorner = Main.Utilities.NewObj("UICorner", {
-					Parent = Base.NotificationFrame,
-					CornerRadius = UDim.new(0, 6)
-				})
-
-				Base.DropShadowHolder = Main.Utilities.NewObj("Frame", {
-					Parent = Base.NotificationFrame,
-					ZIndex = 0,
-					BorderSizePixel = 0,
-					Size = UDim2.new(1, 0, 1, 0),
-					Name = "DropShadowHolder",
-					BackgroundTransparency = 1
-				})
-
-				Base.DropShadow = Main.Utilities.NewObj("ImageLabel", {
-					Parent = Base.DropShadowHolder,
-					ZIndex = 0,
-					BorderSizePixel = 0,
-					SliceCenter = Rect.new(49, 49, 450, 450),
-					ScaleType = Enum.ScaleType.Slice,
-					ImageTransparency = 0.5,
-					ImageColor3 = Color3.fromRGB(0, 0, 0),
-					AnchorPoint = Vector2.new(0.5, 0.5),
-					Image = "rbxassetid://6014261993",
-					Size = UDim2.new(1, 47, 1, 47),
-					BackgroundTransparency = 1,
-					Name = "DropShadow",
-					Position = UDim2.new(0.5, 0, 0.5, 0)
-				})
-
-				Base.Icon = Main.Utilities.NewObj("ImageLabel", {
-					Parent = Base.NotificationFrame,
-					AnchorPoint = Vector2.new(0, 0.5),
-					Image = iconId,
-					Size = UDim2.new(0, 32, 0, 32),
-					BackgroundTransparency = 1,
-					Name = frameName .. "_icon",
-					Position = UDim2.new(0, 14, 0.5, 0)
-				})
-
-				Base.NotifTypeLabel = Main.Utilities.NewObj("TextLabel", {
-					Parent = Base.NotificationFrame,
-					BorderSizePixel = 0,
-					TextWrapped = true,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					TextYAlignment = Enum.TextYAlignment.Top,
-					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-					TextSize = 14,
-					FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-					TextColor3 = Color3.fromRGB(255, 255, 255),
-					BackgroundTransparency = 1,
-					AnchorPoint = Vector2.new(1, 0),
-					Size = UDim2.new(1, -60, 0, 14),
-					BorderColor3 = Color3.fromRGB(0, 0, 0),
-					Text = Options.Title,
-					Name = "NotifType",
-					Position = UDim2.new(1, 0, 0, 14)
-				})
-
-				Base.DescLabel = Main.Utilities.NewObj("TextLabel", {
-					Parent = Base.NotificationFrame,
-					BorderSizePixel = 0,
-					TextWrapped = true,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					TextYAlignment = Enum.TextYAlignment.Top,
-					BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-					TextSize = 9,
-					FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-					TextColor3 = Color3.fromRGB(81, 81, 81),
-					BackgroundTransparency = 1,
-					AnchorPoint = Vector2.new(1, 0),
-					Size = UDim2.new(1, -60, 0, 28),
-					BorderColor3 = Color3.fromRGB(0, 0, 0),
-					Text = Options.Description,
-					Name = "Desc",
-					Position = UDim2.new(1, 1, 0, 33)
-				})
-
-				Base.DescPadding = Main.Utilities.NewObj("UIPadding", {
-					Parent = Base.DescLabel,
-					PaddingRight = UDim.new(0, 5),
-					PaddingBottom = UDim.new(0, 5)
-				})
-			end
-
-			Base.Logic = {
-				Methods = {
-					UpdateSizesAndPositions = function()
-						Base.DescLabel.Size = UDim2.new(Base.DescLabel.Size.X.Scale, Base.DescLabel.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y)
-						Base.NotifTypeLabel.Size = UDim2.new(Base.NotifTypeLabel.Size.X.Scale, Base.NotifTypeLabel.Size.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y)
-						Base.DescLabel.Position = UDim2.new(Base.NotifTypeLabel.Position.X.Scale, Base.NotifTypeLabel.Position.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y + 19)
-
-						Main.Utilities.Tween(Base.NotificationFrame, {
-							Size = UDim2.new(Base.NotificationFrame.Size.X.Scale, Base.NotificationFrame.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y + Base.NotifTypeLabel.TextBounds.Y + 34)
-						}, 0.2, Main.TweenTypes.Hover)
-					end,
-
-					FadeOutNotification = function(duration)
-						coroutine.wrap(function()
-							task.wait(duration)
-
-							Main.Utilities.Tween(Base.NotificationFrame, {BackgroundTransparency = 1}, 0.6, Main.TweenTypes.Drag)
-
-							for _, v in pairs(Base.NotificationFrame:GetDescendants()) do
-								if v:IsA("ImageLabel") then
-									Main.Utilities.Tween(v, {ImageTransparency = 1}, 0.6, Main.TweenTypes.Drag)
-								elseif v:IsA("TextLabel") then
-									Main.Utilities.Tween(v, {TextTransparency = 1}, 1.2, Main.TweenTypes.Drag)
-								end
-							end
-
-							task.wait(0.8)
-							Base.NotificationFrame:Destroy()
-						end)()
-					end
-				},
-
-				Setup = function(self, options)
-					Base.Logic.Methods.UpdateSizesAndPositions()
-					Base.Logic.Methods.FadeOutNotification(Options.Duration or options.duration or 69420)
-				end
-			}
-
-			Base.Logic.Setup(Options)
-
-			return Base	
-		end
-	end
 	Main.Utilities.Dragify(_Azuma.MainFrame)
 	Main.Utilities.Cursor(_Azuma.MainFrame, 83884515509675)
 	return _Azuma
 end
 
-function Azuma:Notify(options)
+-- Notifications
+do
+	function _NotificationBase(Options, frameName, iconId)
+		local Base = {}
+
+		-- Rendering
+		do
+			Base.NotificationFrame = Main.Utilities.NewObj("Frame", {
+				Parent = _Azuma.NotificationsFrame,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Color3.fromRGB(13, 13, 13),
+				Size = UDim2.new(1, 0, 0, 60),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Name = frameName
+			})
+
+			Base.NotificationCorner = Main.Utilities.NewObj("UICorner", {
+				Parent = Base.NotificationFrame,
+				CornerRadius = UDim.new(0, 6)
+			})
+
+			Base.DropShadowHolder = Main.Utilities.NewObj("Frame", {
+				Parent = Base.NotificationFrame,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				Size = UDim2.new(1, 0, 1, 0),
+				Name = "DropShadowHolder",
+				BackgroundTransparency = 1
+			})
+
+			Base.DropShadow = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Base.DropShadowHolder,
+				ZIndex = 0,
+				BorderSizePixel = 0,
+				SliceCenter = Rect.new(49, 49, 450, 450),
+				ScaleType = Enum.ScaleType.Slice,
+				ImageTransparency = 0.5,
+				ImageColor3 = Color3.fromRGB(0, 0, 0),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Image = "rbxassetid://6014261993",
+				Size = UDim2.new(1, 47, 1, 47),
+				BackgroundTransparency = 1,
+				Name = "DropShadow",
+				Position = UDim2.new(0.5, 0, 0.5, 0)
+			})
+
+			Base.Icon = Main.Utilities.NewObj("ImageLabel", {
+				Parent = Base.NotificationFrame,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Image = iconId,
+				Size = UDim2.new(0, 32, 0, 32),
+				BackgroundTransparency = 1,
+				Name = frameName .. "_icon",
+				Position = UDim2.new(0, 14, 0.5, 0)
+			})
+
+			Base.NotifTypeLabel = Main.Utilities.NewObj("TextLabel", {
+				Parent = Base.NotificationFrame,
+				BorderSizePixel = 0,
+				TextWrapped = true,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 14,
+				FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 0),
+				Size = UDim2.new(1, -60, 0, 14),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Text = Options.Title,
+				Name = "NotifType",
+				Position = UDim2.new(1, 0, 0, 14)
+			})
+
+			Base.DescLabel = Main.Utilities.NewObj("TextLabel", {
+				Parent = Base.NotificationFrame,
+				BorderSizePixel = 0,
+				TextWrapped = true,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				TextSize = 9,
+				FontFace = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+				TextColor3 = Color3.fromRGB(81, 81, 81),
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 0),
+				Size = UDim2.new(1, -60, 0, 28),
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				Text = Options.Description,
+				Name = "Desc",
+				Position = UDim2.new(1, 1, 0, 33)
+			})
+
+			Base.DescPadding = Main.Utilities.NewObj("UIPadding", {
+				Parent = Base.DescLabel,
+				PaddingRight = UDim.new(0, 5),
+				PaddingBottom = UDim.new(0, 5)
+			})
+		end
+
+		Base.Logic = {
+			Methods = {
+				UpdateSizesAndPositions = function()
+					Base.DescLabel.Size = UDim2.new(Base.DescLabel.Size.X.Scale, Base.DescLabel.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y)
+					Base.NotifTypeLabel.Size = UDim2.new(Base.NotifTypeLabel.Size.X.Scale, Base.NotifTypeLabel.Size.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y)
+					Base.DescLabel.Position = UDim2.new(Base.NotifTypeLabel.Position.X.Scale, Base.NotifTypeLabel.Position.X.Offset, 0, Base.NotifTypeLabel.TextBounds.Y + 19)
+
+					Main.Utilities.Tween(Base.NotificationFrame, {
+						Size = UDim2.new(Base.NotificationFrame.Size.X.Scale, Base.NotificationFrame.Size.X.Offset, 0, Base.DescLabel.TextBounds.Y + Base.NotifTypeLabel.TextBounds.Y + 34)
+					}, 0.2, Main.TweenTypes.Hover)
+				end,
+
+				FadeOutNotification = function(duration)
+					coroutine.wrap(function()
+						task.wait(duration)
+
+						Main.Utilities.Tween(Base.NotificationFrame, {BackgroundTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+
+						for _, v in pairs(Base.NotificationFrame:GetDescendants()) do
+							if v:IsA("ImageLabel") then
+								Main.Utilities.Tween(v, {ImageTransparency = 1}, 0.6, Main.TweenTypes.Drag)
+							elseif v:IsA("TextLabel") then
+								Main.Utilities.Tween(v, {TextTransparency = 1}, 1.2, Main.TweenTypes.Drag)
+							end
+						end
+
+						task.wait(0.8)
+						Base.NotificationFrame:Destroy()
+					end)()
+				end
+			},
+
+			Setup = function(self, options)
+				Base.Logic.Methods.UpdateSizesAndPositions()
+				Base.Logic.Methods.FadeOutNotification(Options.Duration or options.duration or 69420)
+			end
+		}
+
+		Base.Logic.Setup(Options)
+
+		return Base	
+	end
+
+	function Azuma:Notify(options)
 		options = Main.Utilities.Settings({
 			Title = "Preview Notification",
 			Description = "Preview Description",
@@ -2392,10 +2392,10 @@ function Azuma:Notify(options)
 
 		-- Rendering/Logic
 		local Notify = _NotificationBase(options, "Notification", "rbxassetid://14957911417")
-	return Notify
-end
+		return Notify
+	end
 
-function Azuma:Warn(options)
+	function Azuma:Warn(options)
 		options = Main.Utilities.Settings({
 			Title = "Preview Warning",
 			Description = "Preview Warning",
@@ -2404,7 +2404,8 @@ function Azuma:Warn(options)
 
 		-- Rendering/Logic
 		local Warn = _NotificationBase(options, "Warning", "rbxassetid://14966839736")
-	return Warn
+		return Warn
+	end
 end
 
 local LoadTime = math.floor((tick() - startTime) * 1000)
