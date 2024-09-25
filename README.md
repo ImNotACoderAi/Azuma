@@ -6,13 +6,9 @@ This documentation is for the stable release of Tone UI Library. "A better Delmo
 local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/AzumaBranch/Main.lua",true))()
 ```
 
-# IMPORTANT
-
-- The name of the libary while declaring it cannot be "Tone" Or else you wont be able to use the library
-
 ## Creating a Window
 ```lua
-local Window = Azuma:Window({
+local Window = Lib:Window({
     Title = "Title of the library",
     Bind = "RightShift",
     NavigationPosition = "Right",
@@ -197,7 +193,7 @@ Callback = <function> - The function of the Color Picker.
 
 ## Notifying the user
 ```lua
-Azuma:Notify({
+Lib:Notify({
     Title = "Notification Title",
     Description = "This is a notification",
     Duration = 5
