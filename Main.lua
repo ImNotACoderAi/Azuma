@@ -2236,7 +2236,6 @@ function Azuma:Window(options)
 	end	
 	Main.Utilities.Dragify(_Azuma.MainFrame)
 	Main.Utilities.Cursor(_Azuma.MainFrame, 83884515509675)
-	return _Azuma
 end
 
 -- Notifications
@@ -2412,4 +2411,4 @@ local LoadTime = math.floor((tick() - startTime) * 1000)
 
 print("Loaded Tone Ui Libary That Took ".. LoadTime)
 
-return Azuma
+return Azuma, _Azuma
