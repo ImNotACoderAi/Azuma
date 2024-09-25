@@ -2236,7 +2236,7 @@ function Azuma:Window(options)
 	end	
 	-- Notifications
 	do
-		local function NotificationBase(Options, frameName, iconId)
+		function _NotificationBase(Options, frameName, iconId)
 			local Base = {}
 
 			-- Rendering
@@ -2377,34 +2377,34 @@ function Azuma:Window(options)
 
 			return Base	
 		end
-
-		function Azuma:Notify(options)
-			options = Main.Utilities.Settings({
-				Title = "Preview Notification",
-				Description = "Preview Description",
-				Duration = 2
-			}, options or {})
-
-			-- Rendering/Logic
-			local Notify = NotificationBase(options, "Notification", "rbxassetid://14957911417")
-			return Notify
-		end
-
-		function Azuma:Warn(options)
-			options = Main.Utilities.Settings({
-				Title = "Preview Warning",
-				Description = "Preview Warning",
-				Duration = 2
-			}, options or {})
-
-			-- Rendering/Logic
-			local Warn = NotificationBase(options, "Warning", "rbxassetid://14966839736")
-			return Warn
-		end
 	end
 	Main.Utilities.Dragify(_Azuma.MainFrame)
 	Main.Utilities.Cursor(_Azuma.MainFrame, 83884515509675)
 	return _Azuma
+end
+
+function Azuma:Notify(options)
+		options = Main.Utilities.Settings({
+			Title = "Preview Notification",
+			Description = "Preview Description",
+			Duration = 2
+		}, options or {})
+
+		-- Rendering/Logic
+		local Notify = _NotificationBase(options, "Notification", "rbxassetid://14957911417")
+	return Notify
+end
+
+function Azuma:Warn(options)
+		options = Main.Utilities.Settings({
+			Title = "Preview Warning",
+			Description = "Preview Warning",
+			Duration = 2
+		}, options or {})
+
+		-- Rendering/Logic
+		local Warn = _NotificationBase(options, "Warning", "rbxassetid://14966839736")
+	return Warn
 end
 
 local LoadTime = math.floor((tick() - startTime) * 1000)
