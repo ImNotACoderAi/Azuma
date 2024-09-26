@@ -1,5 +1,5 @@
 # Azuma UI Library
-This documentation is for the stable release of Tone UI Library. "A better Delmo"
+This documentation is for the stable release of Azuma UI Library. "A better Delmo"
 
 ## Booting the Library
 ```lua
