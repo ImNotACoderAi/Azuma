@@ -1,247 +1,209 @@
-# Cyanide Library Documentation
+# Cyanide UI Library Documentation
 
-Welcome to the **Cyanide Library** documentation. This guide provides a comprehensive overview of how to use the Cyanide Library effectively, covering everything from booting the library to creating various UI components.
+## Overview
 
-## Booting the Library
+The **Cyanide UI Library** is a powerful tool for creating customizable user interfaces in your Roblox projects. It allows you to easily create windows, tabs, buttons, toggles, sliders, dropdowns, color pickers, labels, and warnings. 
 
-To start using the Cyanide Library, you need to load it using the following Lua code:
+## Getting Started
+
+To create a new window using the Cyanide UI Library, you can use the `CreateWindow` method. Here’s how to set it up:
 
 ```lua
-local CyanideInterface = loadstring(game:HttpGet('https://raw.githubusercontent.com/ImNotACoderAi/Azuma/refs/heads/CyanideBranch/Main.lua'))()
+local Interface = Cyanide:CreateWindow({
+	Name = "Cyanide UI Library",   -- The title of the window
+	Bind = "RightControl",         -- The key to bind the window toggle
+	NavigationPosition = "Right",  -- Position of the navigation (Left or Right)
+	DiscordLink = "https://discord.gg/ReSXkjdjQR",  -- Link to the Discord server
+	YoutubeLink = "Not Set"        -- Link to the YouTube channel (optional)
+})
 ```
 
-## Creating a Window
+## Creating Tabs
 
-To create a main window for your UI, use the `CreateWindow` function as follows:
+Once you have your interface set up, you can create tabs within your window. Use the `CreateTab` method as follows:
 
 ```lua
-local Window = CyanideInterface:CreateWindow({
-    Name = "Title of the Library"
+local Tab = Interface:CreateTab({
+	Name = "Example Tab"  -- The title of the tab
+})
+```
+
+## Adding UI Elements
+
+The following UI elements can be added to your tabs:
+
+### Button
+
+To add a button that executes a callback function when pressed, use `AddButton`:
+
+```lua
+local Button = Tab:AddButton({
+	Name = "Example Button",  -- The title of the button
+	Callback = function()     -- The function to call on button press
+		print("Example Button Pressed!")
+	end,
+})
+```
+
+### Toggle
+
+A toggle switch can be added using `AddToggle`. It can be set to a default state (on/off):
+
+```lua
+local Toggle = Tab:AddToggle({
+	Name = "Example Toggle",  -- The title of the toggle
+	Default = false,         -- The default state (true for on, false for off)
+	Callback = function(v)    -- The function to call on toggle change
+		print("Example Toggle Pressed!", v)
+	end,
+})
+```
+
+### Slider
+
+To create a slider for selecting a numeric value, use `AddSlider`:
+
+```lua
+local Slider = Tab:AddSlider({
+	Name = "Example Slider",  -- The title of the slider
+	Default = 50,            -- Default value for the slider
+	Max = 100,               -- Maximum value
+	Min = 0,                 -- Minimum value
+	Callback = function(v)    -- The function to call on slider change
+		print("Example Slider Dragged!", v)
+	end,
+})
+```
+
+### Dropdown
+
+You can add a dropdown menu with selectable items using `AddDropdown`:
+
+```lua
+local Dropdown = Tab:AddDropdown({
+	Name = "Example Dropdown",  -- The title of the dropdown
+	Selectmode = true           -- Enables single selection mode
 })
 
---[[
-Name = <string> - The name of the UI window.
-]]
+local DropdownItem = Dropdown:Add(1, "Title!", function()  -- Adding an item to the dropdown
+	print("Example Dropdown Item Clicked!")
+end)
 ```
 
-## Creating a Tab
+### Color Picker
 
-Add a new tab to your window with the `CreateTab` function:
+To allow users to select colors, use `AddColorPicker`:
 
 ```lua
-local Tab = Window:CreateTab({
-    Name = "Tab 1"
+local ColorPicker = Tab:AddColorPicker({
+	Name = "Example Color Picker",         -- The title of the color picker
+	DefaultColor = Color3.fromRGB(255, 255, 255),  -- Default color (white)
+	DefaultDarkness = 1,                   -- Default darkness level
+	Callback = function(v)                  -- The function to call on color change
+		print("Example Color Picker Changed!", v)
+	end,
+})
+```
+
+### Label
+
+To add a static label, use `AddLabel`:
+
+```lua
+local Label = Tab:AddLabel({
+	Text = "Example Label"  -- The text to display
+})
+```
+
+### Warning
+
+To display a warning message, use `AddWarning`:
+
+```lua
+local Warning = Tab:AddWarning({
+	Text = "Example Warning"  -- The text for the warning
+})
+```
+
+## Initializing the Library
+
+Finally, make sure to initialize the library to apply all the settings and elements you’ve created:
+
+```lua
+Cyanide:Initilalize()
+```
+
+## Complete Example
+
+Here’s a complete example of how to use the Cyanide UI Library:
+
+```lua
+local Interface = Cyanide:CreateWindow({
+	Name = "Cyanide UI Library",
+	Bind = "RightControl",
+	NavigationPosition = "Right",
+	DiscordLink = "https://discord.gg/ReSXkjdjQR",
+	YoutubeLink = "Not Set",
 })
 
---[[
-Name = <string> - The name of the tab.
-]]
-```
-
-## Creating a Section
-
-Sections help organize your tabs. You can create one using:
-
-```lua
-local Section = Tab:AddSection({
-    Name = "Section"
+local Tab = Interface:CreateTab({
+	Name = "Example Tab"
 })
 
---[[
-Name = <string> - The name of the section.
-]]
-```
-
-You can add elements to sections in the same manner as you would add them to a tab.
-
-## Notifying the User
-
-To notify users, use the `CreateNotification` function:
-
-```lua
-CyanideInterface:CreateNotification({
-    Name = "Title!",
-    Content = "Notification content... what will it say?",
-    Image = "rbxassetid://4483345998",
-    Time = 5
+local Button = Tab:AddButton({
+	Name = "Example Button",
+	Callback = function()
+		print("Example Button Pressed!")
+	end,
 })
 
---[[
-Title = <string> - The title of the notification.
-Content = <string> - The content of the notification.
-Image = <string> - The icon of the notification.
-Time = <number> - The duration of the notification (in seconds).
-]]
-```
-
-## Creating a Button
-
-To create a button, use the following code:
-
-```lua
-Tab:AddButton({
-    Name = "Button!",
-    Callback = function()
-        print("Button pressed")
-    end    
+local Toggle = Tab:AddToggle({
+	Name = "Example Toggle",
+	Default = false,
+	Callback = function(v)
+		print("Example Toggle Pressed!", v)
+	end,
 })
 
---[[
-Name = <string> - The name of the button.
-Callback = <function> - The function executed when the button is pressed.
-]]
-```
-
-## Creating a Checkbox Toggle
-
-Checkboxes can be created as follows:
-
-```lua
-Tab:AddToggle({
-    Name = "This is a toggle!",
-    State = false,
-    Callback = function(Value)
-        print(Value)
-    end    
+local Slider = Tab:AddSlider({
+	Name = "Example Slider",
+	Default = 50,
+	Max = 100,
+	Min = 0,
+	Callback = function(v)
+		print("Example Slider Dragged!", v)
+	end,
 })
 
---[[
-Name = <string> - The name of the toggle.
-State = <bool> - The initial state of the toggle (true/false).
-Callback = <function> - The function executed when the toggle is activated/deactivated.
-]]
-```
-
-## Creating a Color Picker
-
-To allow users to select colors, implement a color picker:
-
-```lua
-Tab:AddColorpicker({
-    Name = "Colorpicker",
-    DefaultColor = Color3.fromRGB(255, 0, 0),
-    DefaultDarkness = 0,
-    Callback = function(Value)
-        print(Value)
-    end    
+local Dropdown = Tab:AddDropdown({
+	Name = "Example Dropdown",
+	Selectmode = true
 })
 
---[[
-Name = <string> - The name of the color picker.
-DefaultColor = <Color3> - The default color selected in the color picker.
-DefaultDarkness = <number> - The default darkness level (0-10).
-Callback = <function> - The function executed when a color is selected.
-]]
-```
+local DropdownItem = Dropdown:Add(1, "Title!", function()
+	print("Example Dropdown Item Clicked!")
+end)
 
-## Creating a Slider
-
-To create a slider for numeric input, use:
-
-```lua
-Tab:AddSlider({
-    Name = "Slider",
-    Min = 0,
-    Max = 20,
-    Default = 5,
-    Callback = function(Value)
-        print(Value)
-    end    
+local ColorPicker = Tab:AddColorPicker({
+	Name = "Example Color Picker",
+	DefaultColor = Color3.fromRGB(255, 255, 255),
+	DefaultDarkness = 1,
+	Callback = function(v)
+		print("Example Color Picker Changed!", v)
+	end,
 })
 
---[[
-Name = <string> - The name of the slider.
-Min = <number> - The minimum value of the slider.
-Max = <number> - The maximum value of the slider.
-Default = <number> - The default value of the slider.
-Callback = <function> - The function executed when the slider value changes.
-]]
-```
-
-## Creating a Label
-
-For static text, add a label with:
-
-```lua
-Tab:AddLabel("Label")
-```
-
-## Creating a Warning
-
-To display a warning message, you can also use a label:
-
-```lua
-Tab:AddLabel("Warning: This is a warning message.")
-```
-
-## Creating an Input Box
-
-To allow user text input, implement a textbox:
-
-```lua
-Tab:AddTextBox({
-    Name = "Textbox",
-    Default = "default box input",
-    Callback = function(Value)
-        print(Value)
-    end    
+local Label = Tab:AddLabel({
+	Text = "Example Label"
 })
 
---[[
-Name = <string> - The name of the textbox.
-Default = <string> - The default text displayed in the textbox.
-Callback = <function> - The function executed when the textbox value changes.
-]]
-```
-
-## Creating a Keybind
-
-To create a keybind for specific actions, use:
-
-```lua
-Tab:AddBind({
-    Name = "Bind",
-    Default = "E",
-    Callback = function()
-        print("Key pressed")
-    end    
+local Warning = Tab:AddWarning({
+	Text = "Example Warning"
 })
 
---[[
-Name = <string> - The name of the keybind.
-Default = <string> - The default key assigned to the bind.
-Callback = <function> - The function executed when the key is pressed.
-]]
+Cyanide:Initilalize()
 ```
 
-## Creating a Dropdown Menu
+## Conclusion
 
-For a dropdown selection menu:
-
-```lua
-Tab:AddDropdown({
-    Name = "Dropdown",
-    SelectMode = false  
-})
-
---[[
-Name = <string> - The name of the dropdown.
-SelectMode = <boolean> - If true, allows multiple selections.
-]]
-```
-
-### Adding New Dropdown Options
-
-To add new buttons to an existing dropdown menu:
-
-```lua
-Dropdown:Refresh(<table>)
-```
-
-## Finishing Your Script (REQUIRED)
-
-At the end of your script, ensure to initialize the library:
-
-```lua
-CyanideInterface:Initialize()
-```
+The **Cyanide UI Library** provides a simple and effective way to create user interfaces in Roblox. With the various components available, you can easily customize your UI to fit your needs. Happy coding!
