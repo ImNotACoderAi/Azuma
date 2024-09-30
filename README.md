@@ -6,6 +6,10 @@ The **Cyanide UI Library** is a powerful tool for creating customizable user int
 
 ## Getting Started
 
+This Is A Documentation For A Beta Build Of Cyanide Interface
+
+## Getting Started
+
 To create a new window using the Cyanide UI Library, you can use the `CreateWindow` method. Here’s how to set it up:
 
 ```lua
