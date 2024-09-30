@@ -2488,8 +2488,4 @@ function Cyanide:Initilalize()
 	coroutine.wrap(function() while true do wait() Cyanide.Gui.GUI.Name = G_String end end)()
 end
 
-Cyanide:CreateWindow()
-
-Cyanide:Initilalize()
-
 return Cyanide
