@@ -1,213 +1,248 @@
-# Azuma UI Library
-This documentation is for the stable release of Azuma UI Library. "A better Delmo"
+```
+# Cyanide Library Documentation
+
+Welcome to the **Cyanide Library** documentation. This guide provides a comprehensive overview of how to use the Cyanide Library effectively, covering everything from booting the library to creating various UI components.
 
 ## Booting the Library
+
+To start using the Cyanide Library, you need to load it using the following Lua code:
+
 ```lua
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/AzumaBranch/Main.lua",true))()
+local CyanideInterface = loadstring(game:HttpGet('https://github.com/ImNotACoderAi/Azuma/edit/CyanideBranch/README.md'))()
 ```
 
 ## Creating a Window
+
+To create a main window for your UI, use the `MakeWindow` function as follows:
+
 ```lua
-local Window = Lib:Window({
-    Title = "Title of the library",
-    Bind = "RightShift",
-    NavigationPosition = "Right",
-    DiscordLink = "Discord.gg/YourInviteLink",
-    YoutubeLink = "https://Youtube.com/YourChannel"
+local Window = CyanideInterface:MakeWindow({
+    Name = "Title of the Library"
 })
 
 --[[
-Title = <string> - The name of the UI.
-DiscordLink = <string> - The Bind to close and open the UI.
-NavigationPosition = <string> - The position of the Navigation for now only takes Top, And Right.
-DiscordLink = <string> - The Discord invite link to be displayed.
-YoutubeLink = <string> - The YouTube channel link to be displayed.
+Name = <string> - The name of the UI window.
 ]]
 ```
 
 ## Creating a Tab
+
+Add a new tab to your window with the `MakeTab` function:
+
 ```lua
-local Tab = Window:Tab({
-    Title = "Tab 1"
+local Tab = Window:MakeTab({
+    Name = "Tab 1"
 })
 
 --[[
-Title = <string> - The name of the tab.
+Name = <string> - The name of the tab.
 ]]
 ```
 
-## Creating a Label
+## Creating a Section
+
+Sections help organize your tabs. You can create one using:
+
 ```lua
-local Label = Tab:Label({
-    Text = "This is a label"
+local Section = Tab:AddSection({
+    Name = "Section"
 })
 
 --[[
-Text = <string> - The text of the label.
+Name = <string> - The name of the section.
 ]]
 ```
 
-### Changing the value of an existing label
+You can add elements to sections in the same manner as you would add them to a tab.
+
+## Notifying the User
+
+To notify users, use the `MakeNotification` function:
+
 ```lua
-Label:Set("New Label Text")
-```
-
-## Creating a Warning
-```lua
-local Warning = Tab:Warning({
-    Text = "This is a warning message"
-})
-
---[[
-Text = <string> - The text of the warning.
-]]
-```
-
-## Creating a Button
-```lua
-Tab:Button({
-    Title = "Button!",
-    Callback = function()
-        print("button pressed")
-    end    
-})
-
---[[
-Title = <string> - The name of the button.
-Callback = <function> - The function of the button.
-]]
-```
-
-## Creating a Toggle
-```lua
-local Toggle = Tab:Toggle({
-    Title = "This is a toggle!",
-    Callback = function(Value)
-        print(Value)
-    end    
-})
-
---[[
-Title = <string> - The name of the toggle.
-Callback = <function> - The function of the toggle.
-]]
-```
-
-## Creating a Slider
-```lua
-local Slider = Tab:Slider({
-    Title = "Slider",
-    Min = 0,
-    Max = 100,
-    Default = 50,
-    Callback = function(Value)
-        print(Value)
-    end    
-})
-
---[[
-Title = <string> - The name of the slider.
-Min = <number> - The minimal value of the slider.
-Max = <number> - The maximum value of the slider.
-Default = <number> - The default value of the slider.
-Callback = <function> - The function of the slider.
-]]
-```
-
-## Creating a Bind
-```lua
-local Bind = Tab:Bind({
-    Title = "Keybind",
-    DefaultBind = "F",
-    Callback = function()
-        print("Keybind Activated")
-    end    
-})
-
---[[
-Title = <string> - The name of the bind.
-DefaultBind = <string> - The default key for the bind.
-Callback = <function> - The function of the bind.
-]]
-```
-
-## Creating a Dropdown menu
-```lua
-local Dropdown = Tab:Dropdown({
-    Title = "Dropdown",
-    Selectmode = true
-})
-
---[[
-Title = <string> - The name of the dropdown.
-Selectmode = <bool> - Whether multiple options can be selected.
-]]
-```
-
-### Adding options to a Dropdown
-```lua
-Dropdown:Add(1, "Option 1", function(Selected)
-    print("Selected:", Selected)
-end)
-
---[[
-id = <number> - The id of the option.
-title = <string> - The name of the option.
-callback = <function> - The function called when the option is selected.
-]]
-```
-
-## Creating a Color Picker
-```lua
-local ColorPicker = Tab:ColorPicker({
-    Title = "Color Picker",
-    DefaultColor = Color3.fromRGB(255, 255, 255)
-    DefaultDarkness = 0
-    Callback = function(Value)
-        print(Value)
-    end    
-})
-
---[[
-Title = <string> - The name of the Color Picker.
-DefaultColor = Color3.fromRGB(<number>) - The default Color of the Color Picker.
-DefaultDarkness = 0/100 - The default Color of the Color Picker.
-Callback = <function> - The function of the Color Picker.
-]]
-```
-
-## Creating a Text Box
-```lua
-local TextBox = Tab:TextBox({
-    Title = "Text Box",
-    Callback = function(Text)
-        print(Text)
-    end    
-})
-
---[[
-Title = <string> - The name of the Color Picker.
-Callback = <function> - The function of the Color Picker.
-]]
-```
-
-## Notifying the user
-```lua
-Lib:Notify({
-    Title = "Notification Title",
-    Description = "This is a notification",
-    Duration = 5
+CyanideInterface:MakeNotification({
+    Name = "Title!",
+    Content = "Notification content... what will it say?",
+    Image = "rbxassetid://4483345998",
+    Time = 5
 })
 
 --[[
 Title = <string> - The title of the notification.
-Description = <string> - The content of the notification.
-Duration = <number> - The duration of the notification in seconds.
+Content = <string> - The content of the notification.
+Image = <string> - The icon of the notification.
+Time = <number> - The duration of the notification (in seconds).
 ]]
 ```
 
-## Finishing up
-After finishing your UI you simply want to call
+## Creating a Button
+
+To create a button, use the following code:
+
 ```lua
-Liib:Init()
+Tab:AddButton({
+    Name = "Button!",
+    Callback = function()
+        print("Button pressed")
+    end    
+})
+
+--[[
+Name = <string> - The name of the button.
+Callback = <function> - The function executed when the button is pressed.
+]]
+```
+
+## Creating a Checkbox Toggle
+
+Checkboxes can be created as follows:
+
+```lua
+Tab:AddToggle({
+    Name = "This is a toggle!",
+    State = false,
+    Callback = function(Value)
+        print(Value)
+    end    
+})
+
+--[[
+Name = <string> - The name of the toggle.
+State = <bool> - The initial state of the toggle (true/false).
+Callback = <function> - The function executed when the toggle is activated/deactivated.
+]]
+```
+
+## Creating a Color Picker
+
+To allow users to select colors, implement a color picker:
+
+```lua
+Tab:AddColorpicker({
+    Name = "Colorpicker",
+    DefaultColor = Color3.fromRGB(255, 0, 0),
+    DefaultDarkness = 0,
+    Callback = function(Value)
+        print(Value)
+    end    
+})
+
+--[[
+Name = <string> - The name of the color picker.
+DefaultColor = <Color3> - The default color selected in the color picker.
+DefaultDarkness = <number> - The default darkness level (0-10).
+Callback = <function> - The function executed when a color is selected.
+]]
+```
+
+## Creating a Slider
+
+To create a slider for numeric input, use:
+
+```lua
+Tab:AddSlider({
+    Name = "Slider",
+    Min = 0,
+    Max = 20,
+    Default = 5,
+    Callback = function(Value)
+        print(Value)
+    end    
+})
+
+--[[
+Name = <string> - The name of the slider.
+Min = <number> - The minimum value of the slider.
+Max = <number> - The maximum value of the slider.
+Default = <number> - The default value of the slider.
+Callback = <function> - The function executed when the slider value changes.
+]]
+```
+
+## Creating a Label
+
+For static text, add a label with:
+
+```lua
+Tab:AddLabel("Label")
+```
+
+## Creating a Warning
+
+To display a warning message, you can also use a label:
+
+```lua
+Tab:AddLabel("Warning: This is a warning message.")
+```
+
+## Creating an Input Box
+
+To allow user text input, implement a textbox:
+
+```lua
+Tab:AddTextBox({
+    Name = "Textbox",
+    Default = "default box input",
+    Callback = function(Value)
+        print(Value)
+    end    
+})
+
+--[[
+Name = <string> - The name of the textbox.
+Default = <string> - The default text displayed in the textbox.
+Callback = <function> - The function executed when the textbox value changes.
+]]
+```
+
+## Creating a Keybind
+
+To create a keybind for specific actions, use:
+
+```lua
+Tab:AddBind({
+    Name = "Bind",
+    Default = "E",
+    Callback = function()
+        print("Key pressed")
+    end    
+})
+
+--[[
+Name = <string> - The name of the keybind.
+Default = <string> - The default key assigned to the bind.
+Callback = <function> - The function executed when the key is pressed.
+]]
+```
+
+## Creating a Dropdown Menu
+
+For a dropdown selection menu:
+
+```lua
+Tab:AddDropdown({
+    Name = "Dropdown",
+    SelectMode = false  
+})
+
+--[[
+Name = <string> - The name of the dropdown.
+SelectMode = <boolean> - If true, allows multiple selections.
+]]
+```
+
+### Adding New Dropdown Options
+
+To add new buttons to an existing dropdown menu:
+
+```lua
+Dropdown:Refresh(<table>)
+```
+
+## Finishing Your Script (REQUIRED)
+
+At the end of your script, ensure to initialize the library:
+
+```lua
+CyanideInterface:Initialize()
 ```
