@@ -8,7 +8,15 @@ The **Cyanide UI Library** is a powerful tool for creating customizable user int
 
 This Is A Documentation For A Beta Build Of Cyanide Interface
 
-## Getting Started
+## Booting The Library
+
+To Boot the library simply add
+
+```lua
+local CyanideInterfance = loadstring(game:HttpGet("https://raw.githubusercontent.com/ImNotACoderAi/Azuma/refs/heads/CyanideBranch/Main.lua",true))()
+```
+
+## Creating Elements
 
 To create a new window using the Cyanide UI Library, you can use the `CreateWindow` method. Here’s how to set it up:
 
