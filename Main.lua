@@ -2478,7 +2478,7 @@ function Cyanide:CreateNotification(Settings)
 	return Notification	
 end
 
-function Cyanide:Initilalize()
+function Cyanide:Initialize()
 	Cyanide.Gui.NotificationsFrame.Parent = Cyanide.Gui.GUI
 	Cyanide.Gui.NotificationsListLayout.Parent = Cyanide.Gui.NotificationsFrame
 	Cyanide.Gui.NotificationsPadding.Parent = Cyanide.Gui.NotificationsFrame
