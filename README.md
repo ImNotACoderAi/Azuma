@@ -7,7 +7,7 @@ Welcome to the **Cyanide Library** documentation. This guide provides a comprehe
 To start using the Cyanide Library, you need to load it using the following Lua code:
 
 ```lua
-local CyanideInterface = loadstring(game:HttpGet('https://github.com/ImNotACoderAi/Azuma/edit/CyanideBranch/README.md'))()
+local CyanideInterface = loadstring(game:HttpGet('https://raw.githubusercontent.com/ImNotACoderAi/Azuma/refs/heads/CyanideBranch/Main.lua'))()
 ```
 
 ## Creating a Window
