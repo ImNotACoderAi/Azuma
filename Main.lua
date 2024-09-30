@@ -215,17 +215,6 @@ coroutine.wrap(function()
 	end
 end)()
 
-coroutine.wrap(function()
-	while true do
-		if Cyanide and Cyanide.Gui and Cyanide.Gui.GUI then
-			Cyanide.Gui.GUI.Name = G_String
-		else
-			print("Error: Cyanide.Gui.GUI not found")
-		end
-		task.wait()
-	end
-end)()
-
 if _G.Running == true then
 	game.CoreGui:FindFirstChild(G_String):Destroy()
 end
