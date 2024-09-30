@@ -2465,7 +2465,7 @@ function Cyanide:CreateNotification(Settings)
 			end
 		},
 
-		Setup = function(self, Settings)
+		Setup = function(Settings, self)
 			Notification.Logic.Methods.UpdateSizesAndPositions()
 			Notification.Logic.Methods.FadeOutNotification(Settings.Time or Settings.time or 69420)
 		end
