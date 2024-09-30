@@ -583,7 +583,6 @@ function Cyanide:CreateWindow(Settings)
 
 					local Label = {}
 
-					-- Rendering
 					do
 						Label.MainText = Main.Utilities.NewObject("TextLabel", {
 							Parent = Tab.Tab,
@@ -647,7 +646,6 @@ function Cyanide:CreateWindow(Settings)
 
 					local Warning = {}
 
-					-- Rendering
 					do
 						Warning.MainText = Main.Utilities.NewObject("TextLabel", {
 							Parent = Tab.Tab,
@@ -708,16 +706,15 @@ function Cyanide:CreateWindow(Settings)
 				function Tab:AddBind(Settings)
 					Settings = Main.Utilities.Settings({
 						Name = "Preview Bind",
-						DefaultBind = "E",
+						Default = "E",
 						Callback = function(v) print(v) end
 					}, Settings or {})
 
 					local Bind = {
 						Hover = false,
-						CurrentBind = Settings.DefaultBind:sub(1, 1)
+						CurrentBind = Settings.Default:sub(1, 1)
 					}
 
-					-- Rendering
 					do
 						Bind.BindLabel = Main.Utilities.NewObject("TextLabel", {
 							Parent = Tab.Tab,
@@ -760,7 +757,7 @@ function Cyanide:CreateWindow(Settings)
 							BackgroundTransparency = 1,
 							AnchorPoint = Vector2.new(0.5, 0.5),
 							Size = UDim2.new(1, 0, 1, 0),
-							Text = Settings.DefaultBind,
+							Text = Settings.Default,
 							Name = "Value",
 							Position = UDim2.new(0.5, 0, 0.5, 0)
 						})
@@ -770,6 +767,7 @@ function Cyanide:CreateWindow(Settings)
 							PaddingLeft = UDim.new(0, 1)
 						})
 					end
+					
 					Bind.Logic = {
 						Methods = {
 							SetupHoverEvents = function()
@@ -839,7 +837,6 @@ function Cyanide:CreateWindow(Settings)
 						MouseDown = false
 					}
 
-					-- Rendering
 					do
 						Button.Button = Main.Utilities.NewObject("TextLabel", {
 							Parent = Tab.Tab,
@@ -884,6 +881,7 @@ function Cyanide:CreateWindow(Settings)
 							Position = UDim2.new(0, -2, 0, 0)
 						})
 					end
+					
 					Button.Logic = {
 						Methods = {
 							SetText = function(self, text)
@@ -947,17 +945,16 @@ function Cyanide:CreateWindow(Settings)
 				function Tab:AddToggle(Settings)
 					Settings = Main.Utilities.Settings({
 						Name = "Preview Toggle",
-						State = false,
-						Callback = function(v) print(v) end
+						Default = false,
+						Callback = function(v) end
 					}, Settings or {})
 
 					local Toggle = {
 						Hover = false,
 						MouseDown = false,
-						State = Settings.State
+						State = Settings.Default
 					}
 
-					-- Rendering
 					do
 						Toggle.Toggle = Main.Utilities.NewObject("TextLabel", {
 							Parent = Tab.Tab,
@@ -1007,6 +1004,7 @@ function Cyanide:CreateWindow(Settings)
 							CornerRadius = UDim.new(0, 4)
 						})
 					end
+					
 					Toggle.Logic = {
 						Methods = {
 							ToggleState = function(self, Bool)
@@ -1087,7 +1085,7 @@ function Cyanide:CreateWindow(Settings)
 						Default = 50,
 						Min = 0,
 						Max = 100,
-						Callback = function(v) print(v) end
+						Callback = function(v) end
 					}, Settings or {})
 
 					local Slider = {
@@ -1226,12 +1224,12 @@ function Cyanide:CreateWindow(Settings)
 
 							InputBegan = function(input)
 								if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and Slider.Hover then
-									Main.Variables.stop = true
+									Main.Variables.Stop = true
 									Slider.MouseDown = true
 									Main.Utilities.Tween(Slider.Slider, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.4, Main.TweenTypes.Hover)
 
 									if not Slider.Connection then
-										Slider.Connection = Main.Services.runService.RenderStepped:Connect(function()
+										Slider.Connection = Main.Services.RunService.RenderStepped:Connect(function()
 											Slider.Logic.Methods:SetValue()
 										end)
 									end
@@ -1240,7 +1238,7 @@ function Cyanide:CreateWindow(Settings)
 
 							InputEnded = function(input)
 								if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-									Main.Variables.stop = false
+									Main.Variables.Stop = false
 									Slider.MouseDown = false
 
 									if Slider.Hover then
@@ -1805,7 +1803,7 @@ function Cyanide:CreateWindow(Settings)
 								end
 
 								local baseColor = ColorPicker.Logic.Methods.returnColor(colorPercentage, ColorPicker.ColorGradGradient.Color.Keypoints)
-								local finalColor = baseColor:Lerp(Color3.new(0, 0, 0), darknessPercentage)
+								local finalColor = baseColor:Lerp(Color3.fromRGB(0, 0, 0), darknessPercentage)
 
 								ColorPicker.Color.BackgroundColor3 = finalColor
 								ColorPicker.CurrentColor = finalColor
@@ -1827,7 +1825,7 @@ function Cyanide:CreateWindow(Settings)
 								ColorPicker.LastDarknessX = Settings.DefaultDarkness * ColorPicker.DarkGrad.AbsoluteSize.X + ColorPicker.DarkGrad.AbsolutePosition.X
 								ColorPicker.CurrentColor = Settings.DefaultColor
 								ColorPicker.CurrentDarkness = Settings.DefaultDarkness
-								ColorPicker.Color.BackgroundColor3 = Settings.DefaultColor:Lerp(Color3.new(0, 0, 0), Settings.DefaultDarkness)
+								ColorPicker.Color.BackgroundColor3 = Settings.DefaultColor:Lerp(Color3.fromRGB(0, 0, 0), Settings.DefaultDarkness)
 
 								if ColorPicker.ColorIndicator then
 									ColorPicker.ColorIndicator.Position = UDim2.new(h, 0, 0.5, 0)
@@ -1894,9 +1892,9 @@ function Cyanide:CreateWindow(Settings)
 										end
 
 										if (ColorPicker.ChangingColor or ColorPicker.ChangingDarkness) and not ColorPicker.Connection then
-											ColorPicker.Connection = Main.Services.runService.RenderStepped:Connect(function()
+											ColorPicker.Connection = Main.Services.RunService.RenderStepped:Connect(function()
 												ColorPicker.Logic.Methods.updateColorPreview()
-												Main.Variables.stopforce = true
+												Main.Variables.StopForce = true
 											end)
 										end
 									end
@@ -1912,7 +1910,7 @@ function Cyanide:CreateWindow(Settings)
 									if ColorPicker.Connection then
 										ColorPicker.Connection:Disconnect()
 										ColorPicker.Connection = nil
-										Main.Variables.stopforce = false
+										Main.Variables.StopForce = false
 									end
 
 									if ColorPicker.Hover then
@@ -1952,7 +1950,7 @@ function Cyanide:CreateWindow(Settings)
 				function Tab:AddTextBox(Settings)
 					Settings = Main.Utilities.Settings({
 						Name = "Preview Textbox",
-						Callback = function(v) print(v) end
+						Callback = function(v) end
 					}, Settings or {})
 
 					local TextBox = {
@@ -2478,7 +2476,7 @@ function Cyanide:CreateNotification(Settings)
 	return Notification	
 end
 
-function Cyanide:Initialize()
+function Cyanide:Initilalize()
 	Cyanide.Gui.NotificationsFrame.Parent = Cyanide.Gui.GUI
 	Cyanide.Gui.NotificationsListLayout.Parent = Cyanide.Gui.NotificationsFrame
 	Cyanide.Gui.NotificationsPadding.Parent = Cyanide.Gui.NotificationsFrame
