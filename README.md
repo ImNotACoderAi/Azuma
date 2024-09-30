@@ -12,10 +12,10 @@ local CyanideInterface = loadstring(game:HttpGet('https://raw.githubusercontent.
 
 ## Creating a Window
 
-To create a main window for your UI, use the `MakeWindow` function as follows:
+To create a main window for your UI, use the `CreateWindow` function as follows:
 
 ```lua
-local Window = CyanideInterface:MakeWindow({
+local Window = CyanideInterface:CreateWindow({
     Name = "Title of the Library"
 })
 
@@ -26,10 +26,10 @@ Name = <string> - The name of the UI window.
 
 ## Creating a Tab
 
-Add a new tab to your window with the `MakeTab` function:
+Add a new tab to your window with the `CreateTab` function:
 
 ```lua
-local Tab = Window:MakeTab({
+local Tab = Window:CreateTab({
     Name = "Tab 1"
 })
 
@@ -56,10 +56,10 @@ You can add elements to sections in the same manner as you would add them to a t
 
 ## Notifying the User
 
-To notify users, use the `MakeNotification` function:
+To notify users, use the `CreateNotification` function:
 
 ```lua
-CyanideInterface:MakeNotification({
+CyanideInterface:CreateNotification({
     Name = "Title!",
     Content = "Notification content... what will it say?",
     Image = "rbxassetid://4483345998",
