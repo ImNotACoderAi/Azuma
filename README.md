@@ -1,4 +1,3 @@
-```
 # Cyanide Library Documentation
 
 Welcome to the **Cyanide Library** documentation. This guide provides a comprehensive overview of how to use the Cyanide Library effectively, covering everything from booting the library to creating various UI components.
