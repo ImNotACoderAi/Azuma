@@ -137,12 +137,6 @@ Main = {
 	}
 }
 
-if _G.Running == true then
-	game.CoreGui:FindFirstChild("Tone - By Zephy"):Destroy()
-end
-
-_G.Running = true
-
 startTime = tick()
 
 Main.Vars.Mouse = Main.Vars.localPlayer:GetMouse()
