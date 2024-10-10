@@ -916,7 +916,7 @@ function Azuma:Window(options)
 							end
 							Toggle.Logic = {
 								Methods = {
-									ToggleState = function(self, Bool)
+									ToggleState = function(Bool, self)
 										if Bool == nil then
 											Toggle.State = not Toggle.State
 										else
